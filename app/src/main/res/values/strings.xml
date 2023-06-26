@@ -1,0 +1,116 @@
+<resources>
+    <string name="app_name">AfroStudio</string>
+
+    <string name="init_string">Hit + to start creating!</string>
+    <string name="unnamed">Unnamed</string>
+    <string name="you">Author</string>
+    <string name="by">by</string>
+    <string name="bar">Bar</string>
+
+    <!--Menu-->
+    <string name="action_new">New</string>
+    <string name="action_load">Load</string>
+    <string name="action_upload">Upload</string>
+    <string name="action_save">Save</string>
+    <string name="action_share">Share</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_about">About</string>
+    <string name="action_help">Help</string>
+
+    <!--Dialogs-->
+    <string name="dialog_about1" translatable="false">Yaray AfroStudio\nv1.0.2</string>
+    <string name="dialog_about2" translatable="false">juanfraire@gmail.com</string>
+    <string name="dialog_new_ensemble">New Ensemble</string>
+    <string name="dialog_time_signature">Time signature</string>
+    <string name="dialog_bar_number">Bars</string>
+    <string name="dialog_beatsPerBar16" translatable="false">16/8</string>
+    <string name="dialog_beatsPerBar12" translatable="false">12/8</string>
+    <string name="dialog_beatsPerBar9" translatable="false">9/8</string>
+    <string name="dialog_set_tempo">Set Tempo</string>
+    <string name="dialog_tempo_loop">Loop</string>
+    <string name="dialog_instrument_options">Instrument Options</string>
+    <string name="dialog_enabled">Enabled</string>
+    <string name="dialog_duplicate_instrument">Duplicate</string>
+    <string name="dialog_clear_instrument">Clear</string>
+    <string name="dialog_remove_instrument">Remove</string>
+    <string name="dialog_volume">Volume</string>
+    <string name="dialog_add_instrument">Add Instrument</string>
+    <string name="dialog_add_instrument_Djembe">Djembe</string>
+    <string name="dialog_add_instrument_Shekere" translatable="false">Shekere</string>
+    <string name="dialog_add_instrument_Dundun" translatable="false">Dundun</string>
+    <string name="dialog_add_instrument_Sagbang" translatable="false">Sagbang</string>
+    <string name="dialog_add_instrument_Kenkeny" translatable="false">Kenkeny</string>
+    <string name="dialog_add_instrument_Balet" translatable="false">Balet</string>
+    <string name="dialog_set_repetition_barcount">Bars to repeat back</string>
+    <string name="dialog_set_repetition_totalcount">Repetitions</string>
+    <string name="dialog_set_repetition">Set Bar Repetitions</string>
+    <string name="dialog_set_name">Ensemble Name</string>
+    <string name="dialog_email" translatable="false">Email</string>
+    <string name="dialog_email_email" translatable="false">Set email to access Afro Studio Server</string>
+    <string name="dialog_set_name_name">Ensemble name</string>
+    <string name="dialog_set_name_author">Author/source</string>
+    <string name="dialog_load">Load Ensemble</string>
+    <string name="dialog_load_delete_alert">(Long click to delete)</string>
+    <string name="dialog_load_delete_confirm">deleted</string>
+    <string name="dialog_load_delete_error">Error deleting file</string>
+    <string name="dialog_load_local_storage">Local storage</string>
+    <string name="dialog_settings">Settings</string>
+    <string name="dialog_equalizer">Ensemble Equalizer</string>
+    <string name="dialog_bar_options">Bar Options</string>
+    <string name="dialog_clone_bar">Clone</string>
+    <string name="dialog_set_bar_name">Bar Name</string>
+    <string name="dialog_default_instruments">Default Instruments</string>
+    <string name="dialog_special_stroke">Special Stroke</string>
+    <string name="dialog_special_stroke_flam">Flam</string>
+    <string name="dialog_special_stroke_mute">Mute</string>
+    <string name="dialog_special_stroke_ring">Ring</string>
+    <string name="dialog_share">Share</string>
+    <string name="dialog_share_audio">Audio</string>
+    <string name="dialog_share_ensemble">Ensemble</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+
+
+    <string name="recording_audio">Recording Audio</string>
+    <string name="recording_wait">Please wait...</string>
+
+    <!--Toasts-->
+    <string name="tut_welcome_title">Welcome!</string>
+    <string name="tut_welcome_text">Welcome to Afro Studio, where you can easily compose, study, and reproduce African rhythms. Start exploring the App by yourself or go to the Help menu for a quick tutorial.</string>
+    <string name="tut_create_title">Create the Ensemble</string>
+    <string name="tut_create_text">Start creating and expanding your ensemble by adding bars and instruments and setting their strokes...</string>
+    <string name="tut_options_title">Edit the Ensemble</string>
+    <string name="tut_options_text">Fine tune the ensemble by editing bar, instrument, and repetition options...</string>
+    <string name="tut_strokes_title">Strokes Types</string>
+    <string name="tut_strokes_text">Keep taping on any beat to cycle through available strokes for each drum and long click for special strokes..</string>
+    <string name="tut_play_title">Play the Ensemble</string>
+    <string name="tut_play_text">Play, equalize, and vary tempo while editing on real time! Use good headphones or speakers to get the best of Afro Studio!...</string>
+    <string name="tut_save_title">Save the Ensemble</string>
+    <string name="tut_save_text">Finally, set the ensemble name and save or share it for further playback and edition. Don\'t forget to check the saved demos!</string>
+    <string name="tut_getfull_title">Get Full Afro Studio</string>
+    <string name="tut_getfull_text">Action not available in Lite version. To create, edit, save and share longer ensembles get full Afro Studio from the Play Store!</string>
+    <string name="tut_getfull_text2">(Write us if you can\'t afford it)</string>
+    <string name="tut_rate_title">Support Afro Studio</string>
+    <string name="tut_rate_text">Please help us in spreading Afro Studio to the community by rating it on Play Store! Thanks a lot and enjoy!</string>
+    <string name="tut_next">Next...</string>
+
+    <!--Toasts-->
+    <string name="toast_no_settings">We need no settings yet :)</string>
+    <string name="toast_saved">saved</string>
+    <string name="toast_opened">opened</string>
+    <string name="toast_storage_not_ready">Storage not ready</string>
+    <string name="toast_no_file_chosen">No file chosen</string>
+    <string name="toast_purchase_save">Get full Afro Studio for saving your ensembles!</string>
+    <string name="toast_purchase_bars">Get full Afro Studio for adding more bars!</string>
+    <string name="toast_purchase_demo">Get full Afro Studio for editing demos!</string>
+    <string name="toast_share_ok">Ensemble shared</string>
+    <string name="toast_share_error">No internet response</string>
+    <string name="toast_getensemble_error">Unable to download ensemble</string>
+
+    <!--TagId-->
+    <string name="tag0" translatable="false">0</string>
+    <string name="tag1" translatable="false">1</string>
+
+    <string name="about_afrostudio">Created and designed by African rhythm professors, Afro Studio was conceived as an educational tool that embraces a unique pedagogical environment suitable for the study, composition and further incorporation of complex African rhythms and ensembles.\n\nAnyone studying African rhythms knows that it can take a considerable amount of time until the body finally incorporate a given African ensemble including instruments like djembe, kenekeny, sagbang, dundun and shekere. In the process, many students write the rhythm, sing it, clap it, or even record it in order to speed up the embodiment of the musical structure.\n\nTo improve this learning process, Afro Studio allows to describe each African instrument pattern in a intuitively fashion without requiring any expertise on musical theory. Once created, a powerful playback feature allows to reproduce the ensemble at lower tempos for detailed analysis, or at higher rates to obtain the final feeling of the music. In both cases a moving cursor points the current beat in the graphic user interface, which also allow the user to modify the pattern in real time.\n\nTo have such a rich feature set in a mobile device is crucial for the practice of African music which rarely happens in an environment with a computer or other high-end processing hardware. Indeed, being able to take Afro Studio in your pocket right out to the fresh air where the rest of the drummers tend to be is the distinguishing feature we are offering.\n\nFinally, the  experienced musician can take advantage of Afro Studio to compose and get the feeling of complex musical structures and phrases to later play in the real ensemble. Also, since African drum rhythms are mainly transmitted by word of mouth, keeping them safe and stored in Afro Studio can help to mantain the tradition. I have been using this tool this way with great benefit and now I intend to share this with the rest of the African music community. Hope you can enjoy it too :)</string>
+
+</resources>

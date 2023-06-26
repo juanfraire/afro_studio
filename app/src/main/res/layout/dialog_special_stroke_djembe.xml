@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginBottom="2dp"
+    android:layout_marginLeft="2dp"
+    android:layout_marginRight="2dp"
+    android:layout_marginTop="2dp"
+    android:orientation="vertical"
+    android:paddingTop="10dp">
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:text="@string/dialog_special_stroke"
+        android:textColor="@color/green_afrostudio"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="10dp"
+        android:background="@android:color/darker_gray" />
+
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <RadioGroup
+            android:id="@+id/special_stroke_djembe_radiogroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:measureWithLargestChild="false"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/special_stroke_flam_bass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:drawableLeft="@drawable/ico_ini_bass_flam_lr"
+                android:drawablePadding="20dp"
+                android:paddingLeft="50dp"
+                android:text="@string/dialog_special_stroke_flam"
+                android:textSize="@dimen/abc_text_size_medium_material" />
+
+            <RadioButton
+                android:id="@+id/special_stroke_flam_tone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:drawableLeft="@drawable/ico_ini_tone_flam_lr"
+                android:drawablePadding="20dp"
+                android:paddingLeft="50dp"
+                android:text="@string/dialog_special_stroke_flam"
+                android:textSize="@dimen/abc_text_size_medium_material" />
+
+            <RadioButton
+                android:id="@+id/special_stroke_flam_slap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:drawableLeft="@drawable/ico_ini_slap_flam_lr"
+                android:drawablePadding="20dp"
+                android:paddingLeft="50dp"
+                android:text="@string/dialog_special_stroke_flam"
+                android:textSize="@dimen/abc_text_size_medium_material" />
+
+        </RadioGroup>
+
+    </ScrollView>
+
+
+</LinearLayout>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--<color name="green_afrostudio">#008866</color>-->
+    <color name="playback_afrostudio">#0066cc</color>
+    <color name="playback_afrostudio_transp">#110066cc</color>
+    <color name="green_afrostudio">#008866</color>
+    <color name="green_afrostudio_transp_1">#0c008866</color>
+    <color name="green_afrostudio_transp_2">#22008866</color>
+    <color name="lightGray_afrostudio">#ececec</color>
+    <color name="darkGray_afrostudio">#2a2a2a</color>
+    <color name="gray">#777777</color>
+    <color name="black_transp">#99000000</color>
+
+    <color name="orange">#ff5500</color>
+    <color name="white">#ffffff</color>
+    <color name="transparent">#00000000</color>
+    <color name="date_color">#999999</color>
+    <color name="black">#000000</color>
+    <color name="blue">#0066cc</color>
+    <color name="gold">#e6b121</color>
+    <color name="blueback">#99FFFF</color>
+    <color name="articlecolor">#3399FF</color>
+    <color name="article_title">#3399FF</color>
+    <color name="cachecolor">#8ad0e8</color>
+</resources>
