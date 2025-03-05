@@ -53,34 +53,6 @@ import androidx.fragment.app.FragmentActivity;
 import com.yaray.afrostudio.databinding.ActivityMainBinding;
 import com.yaray.afrostudio.databinding.FragmentMainBinding;
 
-
-
-// LINKS
-// Metronome with AudioTrack: http://masterex.github.io/archive/2012/05/28/android-audio-synthesis.html
-// Wav to PCM: http://mindtherobot.com/blog/580/android-audio-play-a-wav-file-on-an-audiotrack/
-// Wav File: http://www.codeproject.com/Articles/29676/CWave-A-Simple-C-Class-to-Manipulate-WAV-Files
-// Why not a bit byte[] array http://mindtherobot.com/blog/633/android-performance-be-careful-with-byte/
-// Java is pass-by-value (pointer) http://stackoverflow.com/questions/40480/is-java-pass-by-reference-or-pass-by-value
-// SplashScreen http://stackoverflow.com/questions/1979524/android-splashscreen
-// JSON: http://www.javacodegeeks.com/2013/10/android-json-tutorial-create-and-parse-json-data.html
-// Layouts https://thinkandroid.wordpress.com/2010/01/14/how-to-position-views-properly-in-layouts/
-// Activity Lifecicle: http://developer.android.com/reference/android/app/Activity.html
-// ScrollView Bug http://blog.pivotal.io/labs/labs/centering-a-view-within-a-scrollview (bug in Android where setting layout_gravity=”center” on a ScrollView’s child)
-// ActionBar http://developer.android.com/guide/topics/ui/actionbar.html
-
-// Usage Flow:
-// - Initial Load: Load saved / New Empty Rithm -> Set bars and instrument sizes
-// - Edit/Playback Mode: Edit beats, add/remove instrument, add/remove bars, modify tempo
-//
-// ToDos:
-// - The problem is it stops playing when the screen locks
-// - Disabling the Balet in the main screen via 'Instrument Optiens' dialog let crash the App.
-// - So, for the next update, is it possible to add new time signatures like 5/8 & 7/8? (http://www.rhythm-in-music.com/lesson-20-odd-meter-eighth-note-beat-time-signatures.html)
-// - Fix: issue de trailing sounds en loop
-// - Golpes especiales - Dialogo (apoyatura, tresillos (drum roll),  claps and muffled strokes, cuatrillos)
-// - Otros instrumentos: balafons diatonique et pentatonique, Cora/n'goni
-// - Mover compás en el tiempo?
-
 public class MainActivity extends AppCompatActivity
         implements
         DialogFragmentAddInstrument.AddInstrumentListener,
