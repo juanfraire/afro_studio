@@ -5,8 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
+import com.yaray.afrostudio.databinding.FragmentMainBinding;
 
 public class MainActivityFragment extends Fragment {
+    private FragmentMainBinding binding;
 
     public MainActivityFragment() {
     }
@@ -14,7 +16,18 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        binding = FragmentMainBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    public FragmentMainBinding getBinding() {
+        return binding;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     @Override

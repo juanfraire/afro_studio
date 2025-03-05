@@ -48,7 +48,12 @@ import java.util.regex.PatternSyntaxException;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import com.yaray.afrostudio.databinding.ActivityMainBinding;
+import com.yaray.afrostudio.databinding.FragmentMainBinding;
+
+
 
 // LINKS
 // Metronome with AudioTrack: http://masterex.github.io/archive/2012/05/28/android-audio-synthesis.html
@@ -90,6 +95,8 @@ public class MainActivity extends AppCompatActivity
         DialogFragmentSpecialStroke.SpecialStrokeListener,
         DialogFragmentEmail.EmailListener,
         DialogFragmentShare.ShareListener {
+
+    private ActivityMainBinding binding;
 
     @SuppressWarnings("unused")
     private static final String TAG = "AfroStudio.MainActivity";
@@ -607,10 +614,12 @@ public class MainActivity extends AppCompatActivity
                 progressDialog.dismiss();
             }
 
+            FragmentMainBinding fragmentBinding = getFragmentBinding();
+
             ensemble.audioTrack.flush();
             ensemble.audioTrack.stop();
             ensemble.onPlay = false;
-            ImageView but_play = (ImageView) findViewById(R.id.but_play);
+            ImageView but_play = fragmentBinding.butPlay;
             but_play.setImageResource(R.drawable.but_play);
 
             if (params.contains("share")) { // Share file
@@ -646,14 +655,14 @@ public class MainActivity extends AppCompatActivity
 //                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 //                    @Override
 //                    public void onCompletion(MediaPlayer mp) {
-//                        ImageView but_play = (ImageView) findViewById(R.id.but_play);
+//                        ImageView but_play = fragmentBinding.butPlay;
 //                        but_play.setImageResource(R.drawable.but_play);
 //                        Log.e(TAG, "MediaPlayer error!!!");
 //                    }
 //                });
 //                mediaPlayer.setLooping(ensemble.onLoop);
 //                mediaPlayer.start();
-//                but_play = (ImageView) findViewById(R.id.but_play);
+//                but_play = fragmentBinding.butPlay;
 //                but_play.setImageResource(R.drawable.but_stop);
 
             }
@@ -804,20 +813,29 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private FragmentMainBinding getFragmentBinding() {
+        MainActivityFragment fragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        return fragment != null ? fragment.getBinding() : null;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         // Init Stuff
         settings = getSharedPreferences(PREFS_NAME, 0);
-        ensembleLayout = (LinearLayout) findViewById(R.id.ensembleLayout);
+
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
+
+        ensembleLayout = fragmentBinding.ensembleLayout;
         horizontalScrollView = (HorizontalScrollView) ensembleLayout.getParent();
-        viewAnimator = (ViewAnimator) findViewById(R.id.animator_intro);
+        viewAnimator = fragmentBinding.animatorIntro;
         ensemble = new Ensemble(MainActivity.this);
 
         // Init Rate Image (shown in help and randomly after several start ups
-        ImageView rateImage = (ImageView) findViewById(R.id.tut_rate_image);
+        ImageView rateImage = fragmentBinding.tutRateImage;
         rateImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -896,32 +914,32 @@ public class MainActivity extends AppCompatActivity
         connectServerTask.execute(settings.getString("user", "undefined@undefined"), "register");
 
         // Low Buttons init
-        ImageView but_zoomIn = (ImageView) findViewById(R.id.but_zoom_in); // Init Buttons
+        ImageView but_zoomIn = fragmentBinding.butZoomIn; // Init Buttons
         but_zoomIn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 iconScale += 0.05;
                 EnsembleUtils.setImageScale(ensembleLayout, horizontalScrollView, MainActivity.this, iconScale, ensemble, viewAnimator);
             }
         });
-        ImageView but_zoomOut = (ImageView) findViewById(R.id.but_zoom_out);
+        ImageView but_zoomOut = fragmentBinding.butZoomOut;
         but_zoomOut.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 iconScale -= 0.05;
                 EnsembleUtils.setImageScale(ensembleLayout, horizontalScrollView, MainActivity.this, iconScale, ensemble, viewAnimator);
             }
         });
-        ImageView but_play = (ImageView) findViewById(R.id.but_play);
+        ImageView but_play = fragmentBinding.butPlay;
         but_play.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (!ensemble.onPlay) { // Play
-                    ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                    ImageView but_play = fragmentBinding.butPlay;
                     but_play.setImageResource(R.drawable.but_stop);
                     PlayRithmTask playRithmTask = new PlayRithmTask();
                     playRithmTask.params = "";
                     playRithmTask.execute("");
                 } else {  // Stop
                     ensemble.onPlay = false;
-                    ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                    ImageView but_play = fragmentBinding.butPlay;
                     but_play.setImageResource(R.drawable.but_play);
                 }
             }
@@ -930,7 +948,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onLongClick(View v) {
                 if (!ensemble.onPlay) { // Play
-                    ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                    ImageView but_play = fragmentBinding.butPlay;
                     but_play.setImageResource(R.drawable.but_rec);
                     PlayRithmTask playRithmTask = new PlayRithmTask();
                     playRithmTask.params = "record reproduce";
@@ -940,7 +958,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        ImageView but_equ = (ImageView) findViewById(R.id.but_equ);
+        ImageView but_equ = fragmentBinding.butEqu;
         but_equ.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -952,7 +970,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        ImageView but_tempo = (ImageView) findViewById(R.id.but_tempo);
+        ImageView but_tempo = fragmentBinding.butTempo;
         but_tempo.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 DialogFragmentTempoSettings dialogFragmentTempoSettings = new DialogFragmentTempoSettings();
@@ -960,7 +978,7 @@ public class MainActivity extends AppCompatActivity
                 dialogFragmentTempoSettings.show(getSupportFragmentManager(), "TempoSettings");
             }
         });
-        TextView tempoText = (TextView) findViewById(R.id.tempoText);
+        TextView tempoText = fragmentBinding.tempoText;
         tempoText.setText(ensemble.bpm + " bpm");
 
         horizontalScrollView.setTag(R.string.tag0, "smallIconsUnSet");
@@ -1155,6 +1173,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
+
         int id = item.getItemId();
 
         if (id == R.id.action_new) {
@@ -1166,7 +1186,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_load) {
             // Stop Playback if any
             if (ensemble.onPlay) {
-                ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                ImageView but_play = fragmentBinding.butPlay;
                 but_play.callOnClick();
             }
 
@@ -1201,7 +1221,7 @@ public class MainActivity extends AppCompatActivity
 
             // Stop Playback if any
             if (ensemble.onPlay) {
-                ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                ImageView but_play = fragmentBinding.butPlay;
                 but_play.callOnClick();
             }
 
@@ -1288,12 +1308,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void tempoSettingsPositiveClick() {
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
 
-        TextView tempoText = (TextView) findViewById(R.id.tempoText);
+        TextView tempoText = fragmentBinding.tempoText;
         tempoText.setText(ensemble.bpm + " bpm");
     }
 
     public void newEnsemblePositiveClick(int beatsPerBar, int numBar, boolean emptyInstruments) {
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
 
         if ((EnsembleUtils.AfroStudioVersion.equals("free")) && (numBar > 1)) {
             numBar = 1;
@@ -1317,7 +1339,7 @@ public class MainActivity extends AppCompatActivity
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            ImageView but_play = (ImageView) findViewById(R.id.but_play);
+            ImageView but_play = fragmentBinding.butPlay;
             but_play.setImageResource(R.drawable.but_play);
         }
 
@@ -1397,6 +1419,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void loadPositiveClick(String fileName) {
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
 
         //horizontalScrollView just remove the smallIcons, they are to be added as soon as new horizontal scrollbar is pushed
         horizontalScrollView.setTag(R.string.tag0, "smallIconsUnSet");
@@ -1417,7 +1440,7 @@ public class MainActivity extends AppCompatActivity
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                ImageView but_play = (ImageView) findViewById(R.id.but_play);
+                ImageView but_play = fragmentBinding.butPlay;
                 but_play.setImageResource(R.drawable.but_play);
             }
 
@@ -1571,6 +1594,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void sharePositiveClick(String option){
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
 
         Log.e(TAG, "option: " + option );
 
@@ -1584,7 +1608,7 @@ public class MainActivity extends AppCompatActivity
                     e.printStackTrace();
                 }
             }
-            ImageView but_play = (ImageView) findViewById(R.id.but_play);
+            ImageView but_play = fragmentBinding.butPlay;
             but_play.setImageResource(R.drawable.but_rec);
             PlayRithmTask playRithmTask = new PlayRithmTask();
             playRithmTask.params = "record share";
