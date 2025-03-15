@@ -125,82 +125,87 @@ public class MainActivity extends AppCompatActivity
                 this.clearBuffer();
 
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.djembeVector.size(); instrumentIndex++) { // All i Djembes at bar currentBeat
-                    if ((ensemble.djembeVector.get(instrumentIndex).get(currentBeat) != 0) && (ensemble.djembeStatus.get(instrumentIndex) == 1)) { // Set offset
+                    Vector<Integer> currentDjembe = ensemble.djembeVector.get(instrumentIndex);
+                    if ((currentDjembe.get(currentBeat) != 0) && (ensemble.djembeStatus.get(instrumentIndex) == 1)) { // Set offset
                         Random r = new Random(); // Humanization on time
                         djembeOffset.setElementAt(r.nextInt(200) * 2, instrumentIndex);
                     }
 
                     if (ensemble.djembeStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 2)
-                            this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 3)
-                            this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 4)
-                            this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 5)
-                            this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 6)
-                            this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                        else if (ensemble.djembeVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 2)
-                                this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 3)
-                                this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 4)
-                                this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 5)
-                                this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 1) == 6)
-                                this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
+                    {
+                        Integer currentDjembeOffset = djembeOffset.get(instrumentIndex);
+                        Integer currentDjembeVolume = ensemble.djembeVolume.get(instrumentIndex);
+                        if (currentDjembe.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 2)
+                            this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 3)
+                            this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 4)
+                            this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 5)
+                            this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 6)
+                            this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], currentDjembeOffset, currentDjembeVolume);
+                        else if (currentDjembe.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 2)
+                                this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 3)
+                                this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 4)
+                                this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 5)
+                                this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 6)
+                                this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 2)
-                                    this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 3)
-                                    this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 4)
-                                    this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 5)
-                                    this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 2) == 6)
-                                    this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 2)
+                                    this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 3)
+                                    this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 4)
+                                    this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 5)
+                                    this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 6)
+                                    this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 2)
-                                        this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 3)
-                                        this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 4)
-                                        this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 5)
-                                        this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 3) == 6)
-                                        this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 2)
+                                        this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 3)
+                                        this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 4)
+                                        this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 5)
+                                        this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 6)
+                                        this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 2)
-                                            this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 3)
-                                            this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 4)
-                                            this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 5)
-                                            this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.djembeVector.get(instrumentIndex).get(currentBeat - 4) == 6)
-                                            this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + djembeOffset.get(instrumentIndex), ensemble.djembeVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_djembe_bass[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 2)
+                                            this.addToBuffer(ensemble.snd_djembe_tone[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 3)
+                                            this.addToBuffer(ensemble.snd_djembe_slap[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 4)
+                                            this.addToBuffer(ensemble.snd_djembe_bass_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 5)
+                                            this.addToBuffer(ensemble.snd_djembe_tone_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 6)
+                                            this.addToBuffer(ensemble.snd_djembe_slap_flam[instrumentIndex % 3], byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.djembeVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentDjembeVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
@@ -209,46 +214,50 @@ public class MainActivity extends AppCompatActivity
                 // Dun // 0=empty, 1=snd_dun_bass_bell, 2=snd_dun_bell, 3=snd_dun_bass_bell_mute
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.dunVector.size(); instrumentIndex++) { // All i Dun at bar currentBeat
                     if (ensemble.dunStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.dunVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_dun_bass_bell, 0, ensemble.dunVolume.get(instrumentIndex));
-                        else if (ensemble.dunVector.get(instrumentIndex).get(currentBeat) == 2)
-                            this.addToBuffer(ensemble.snd_dun_bell, 0, ensemble.dunVolume.get(instrumentIndex));
-                        else if (ensemble.dunVector.get(instrumentIndex).get(currentBeat) == 3)
-                            this.addToBuffer(ensemble.snd_dun_bass_bell_mute, 0, ensemble.dunVolume.get(instrumentIndex));
-                        else if (ensemble.dunVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes, ensemble.dunVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 1) == 2)
-                                this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes, ensemble.dunVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 1) == 3)
-                                this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes, ensemble.dunVolume.get(instrumentIndex));
+                    {
+                        Vector<Integer> currentDun = ensemble.dunVector.get(instrumentIndex);
+                        Integer currentDunVolume = ensemble.dunVolume.get(instrumentIndex);
+                        if (currentDun.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_dun_bass_bell, 0, currentDunVolume);
+                        else if (currentDun.get(currentBeat) == 2)
+                            this.addToBuffer(ensemble.snd_dun_bell, 0, currentDunVolume);
+                        else if (currentDun.get(currentBeat) == 3)
+                            this.addToBuffer(ensemble.snd_dun_bass_bell_mute, 0, currentDunVolume);
+                        else if (currentDun.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentDun.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes, currentDunVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDun.get(currentBeat - 1) == 2)
+                                this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes, currentDunVolume);
+                            else if ((currentBeat - 1 >= 0) && currentDun.get(currentBeat - 1) == 3)
+                                this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes, currentDunVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 2, ensemble.dunVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 2) == 2)
-                                    this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 2, ensemble.dunVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 2) == 3)
-                                    this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 2, ensemble.dunVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentDun.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 2, currentDunVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDun.get(currentBeat - 2) == 2)
+                                    this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 2, currentDunVolume);
+                                else if ((currentBeat - 2 >= 0) && currentDun.get(currentBeat - 2) == 3)
+                                    this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 2, currentDunVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 3, ensemble.dunVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 3) == 2)
-                                        this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 3, ensemble.dunVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 3) == 3)
-                                        this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 3, ensemble.dunVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentDun.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 3, currentDunVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDun.get(currentBeat - 3) == 2)
+                                        this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 3, currentDunVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentDun.get(currentBeat - 3) == 3)
+                                        this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 3, currentDunVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 4, ensemble.dunVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 4) == 2)
-                                            this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 4, ensemble.dunVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.dunVector.get(instrumentIndex).get(currentBeat - 4) == 3)
-                                            this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 4, ensemble.dunVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentDun.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_dun_bass_bell, byteBufferSizeInBytes * 4, currentDunVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDun.get(currentBeat - 4) == 2)
+                                            this.addToBuffer(ensemble.snd_dun_bell, byteBufferSizeInBytes * 4, currentDunVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentDun.get(currentBeat - 4) == 3)
+                                            this.addToBuffer(ensemble.snd_dun_bass_bell_mute, byteBufferSizeInBytes * 4, currentDunVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.dunVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentDunVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
@@ -257,46 +266,50 @@ public class MainActivity extends AppCompatActivity
                 // Ken // 0=empty, 1=snd_ken_bass_bell, 2=snd_ken_bell, 3=snd_ken_bass_bell_mute
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.kenVector.size(); instrumentIndex++) { // All i Kenkenis at bar currentBeat
                     if (ensemble.kenStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.kenVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_ken_bass_bell, 0, ensemble.kenVolume.get(instrumentIndex));
-                        else if (ensemble.kenVector.get(instrumentIndex).get(currentBeat) == 2)
-                            this.addToBuffer(ensemble.snd_ken_bell, 0, ensemble.kenVolume.get(instrumentIndex));
-                        else if (ensemble.kenVector.get(instrumentIndex).get(currentBeat) == 3)
-                            this.addToBuffer(ensemble.snd_ken_bass_bell_mute, 0, ensemble.kenVolume.get(instrumentIndex));
-                        else if (ensemble.kenVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes, ensemble.kenVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 1) == 2)
-                                this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes, ensemble.kenVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 1) == 3)
-                                this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes, ensemble.kenVolume.get(instrumentIndex));
+                    {
+                        Vector<Integer> currentKen = ensemble.kenVector.get(instrumentIndex);
+                        Integer currentKenVolume = ensemble.kenVolume.get(instrumentIndex);
+                        if (currentKen.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_ken_bass_bell, 0, currentKenVolume);
+                        else if (currentKen.get(currentBeat) == 2)
+                            this.addToBuffer(ensemble.snd_ken_bell, 0, currentKenVolume);
+                        else if (currentKen.get(currentBeat) == 3)
+                            this.addToBuffer(ensemble.snd_ken_bass_bell_mute, 0, currentKenVolume);
+                        else if (currentKen.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentKen.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes, currentKenVolume);
+                            else if ((currentBeat - 1 >= 0) && currentKen.get(currentBeat - 1) == 2)
+                                this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes, currentKenVolume);
+                            else if ((currentBeat - 1 >= 0) && currentKen.get(currentBeat - 1) == 3)
+                                this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes, currentKenVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 2, ensemble.kenVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 2) == 2)
-                                    this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 2, ensemble.kenVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 2) == 3)
-                                    this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 2, ensemble.kenVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentKen.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 2, currentKenVolume);
+                                else if ((currentBeat - 2 >= 0) && currentKen.get(currentBeat - 2) == 2)
+                                    this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 2, currentKenVolume);
+                                else if ((currentBeat - 2 >= 0) && currentKen.get(currentBeat - 2) == 3)
+                                    this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 2, currentKenVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 3, ensemble.kenVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 3) == 2)
-                                        this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 3, ensemble.kenVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 3) == 3)
-                                        this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 3, ensemble.kenVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentKen.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 3, currentKenVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentKen.get(currentBeat - 3) == 2)
+                                        this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 3, currentKenVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentKen.get(currentBeat - 3) == 3)
+                                        this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 3, currentKenVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 4, ensemble.kenVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 4) == 2)
-                                            this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 4, ensemble.kenVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.kenVector.get(instrumentIndex).get(currentBeat - 4) == 3)
-                                            this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 4, ensemble.kenVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentKen.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_ken_bass_bell, byteBufferSizeInBytes * 4, currentKenVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentKen.get(currentBeat - 4) == 2)
+                                            this.addToBuffer(ensemble.snd_ken_bell, byteBufferSizeInBytes * 4, currentKenVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentKen.get(currentBeat - 4) == 3)
+                                            this.addToBuffer(ensemble.snd_ken_bass_bell_mute, byteBufferSizeInBytes * 4, currentKenVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.kenVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentKenVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
@@ -305,46 +318,50 @@ public class MainActivity extends AppCompatActivity
                 // Sag // 0=empty, 1=snd_sag_bass_bell, 2=snd_sag_bell, 3=snd_sag_bass_bell_mute
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.sagVector.size(); instrumentIndex++) { // All i
                     if (ensemble.sagStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.sagVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_sag_bass_bell, 0, ensemble.sagVolume.get(instrumentIndex));
-                        else if (ensemble.sagVector.get(instrumentIndex).get(currentBeat) == 2)
-                            this.addToBuffer(ensemble.snd_sag_bell, 0, ensemble.sagVolume.get(instrumentIndex));
-                        else if (ensemble.sagVector.get(instrumentIndex).get(currentBeat) == 3)
-                            this.addToBuffer(ensemble.snd_sag_bass_bell_mute, 0, ensemble.sagVolume.get(instrumentIndex));
-                        else if (ensemble.sagVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes, ensemble.sagVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 1) == 2)
-                                this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes, ensemble.sagVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 1) == 3)
-                                this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes, ensemble.sagVolume.get(instrumentIndex));
+                    {
+                        Vector<Integer> currentSag = ensemble.sagVector.get(instrumentIndex);
+                        Integer currentSagVolume = ensemble.sagVolume.get(instrumentIndex);
+                        if (currentSag.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_sag_bass_bell, 0, currentSagVolume);
+                        else if (currentSag.get(currentBeat) == 2)
+                            this.addToBuffer(ensemble.snd_sag_bell, 0, currentSagVolume);
+                        else if (currentSag.get(currentBeat) == 3)
+                            this.addToBuffer(ensemble.snd_sag_bass_bell_mute, 0, currentSagVolume);
+                        else if (currentSag.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentSag.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes, currentSagVolume);
+                            else if ((currentBeat - 1 >= 0) && currentSag.get(currentBeat - 1) == 2)
+                                this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes, currentSagVolume);
+                            else if ((currentBeat - 1 >= 0) && currentSag.get(currentBeat - 1) == 3)
+                                this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes, currentSagVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 2, ensemble.sagVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 2) == 2)
-                                    this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 2, ensemble.sagVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 2) == 3)
-                                    this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 2, ensemble.sagVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentSag.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 2, currentSagVolume);
+                                else if ((currentBeat - 2 >= 0) && currentSag.get(currentBeat - 2) == 2)
+                                    this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 2, currentSagVolume);
+                                else if ((currentBeat - 2 >= 0) && currentSag.get(currentBeat - 2) == 3)
+                                    this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 2, currentSagVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 3, ensemble.sagVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 3) == 2)
-                                        this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 3, ensemble.sagVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 3) == 3)
-                                        this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 3, ensemble.sagVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentSag.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 3, currentSagVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentSag.get(currentBeat - 3) == 2)
+                                        this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 3, currentSagVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentSag.get(currentBeat - 3) == 3)
+                                        this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 3, currentSagVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 4, ensemble.sagVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 4) == 2)
-                                            this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 4, ensemble.sagVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.sagVector.get(instrumentIndex).get(currentBeat - 4) == 3)
-                                            this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 4, ensemble.sagVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentSag.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_sag_bass_bell, byteBufferSizeInBytes * 4, currentSagVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentSag.get(currentBeat - 4) == 2)
+                                            this.addToBuffer(ensemble.snd_sag_bell, byteBufferSizeInBytes * 4, currentSagVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentSag.get(currentBeat - 4) == 3)
+                                            this.addToBuffer(ensemble.snd_sag_bass_bell_mute, byteBufferSizeInBytes * 4, currentSagVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.sagVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentSagVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
@@ -353,86 +370,90 @@ public class MainActivity extends AppCompatActivity
                 // Balet // 0=empty, 1=snd_dun_bass, 2=snd_sag_bass, 3=snd_ken_bass
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.baletVector.size(); instrumentIndex++) { // All i
                     if (ensemble.baletStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_dun_bass, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 2)
-                            this.addToBuffer(ensemble.snd_sag_bass, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 3)
-                            this.addToBuffer(ensemble.snd_ken_bass, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 4)
-                            this.addToBuffer(ensemble.snd_dun_bass_mute, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 5)
-                            this.addToBuffer(ensemble.snd_sag_bass_mute, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 6)
-                            this.addToBuffer(ensemble.snd_ken_bass_mute, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 7)
-                            this.addToBuffer(ensemble.snd_ring, 0, ensemble.baletVolume.get(instrumentIndex));
-                        else if (ensemble.baletVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 2)
-                                this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 3)
-                                this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 4)
-                                this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 5)
-                                this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 6)
-                                this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
-                            else if ((currentBeat - 1 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 1) == 7)
-                                this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes, ensemble.baletVolume.get(instrumentIndex));
+                    {
+                        Vector<Integer> currentBalet = ensemble.baletVector.get(instrumentIndex);
+                        Integer currentBaletVolume = ensemble.baletVolume.get(instrumentIndex);
+                        if (currentBalet.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_dun_bass, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 2)
+                            this.addToBuffer(ensemble.snd_sag_bass, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 3)
+                            this.addToBuffer(ensemble.snd_ken_bass, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 4)
+                            this.addToBuffer(ensemble.snd_dun_bass_mute, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 5)
+                            this.addToBuffer(ensemble.snd_sag_bass_mute, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 6)
+                            this.addToBuffer(ensemble.snd_ken_bass_mute, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 7)
+                            this.addToBuffer(ensemble.snd_ring, 0, currentBaletVolume);
+                        else if (currentBalet.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 2)
+                                this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 3)
+                                this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 4)
+                                this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 5)
+                                this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 6)
+                                this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes, currentBaletVolume);
+                            else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 7)
+                                this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes, currentBaletVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 2)
-                                    this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 3)
-                                    this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 4)
-                                    this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 5)
-                                    this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 6)
-                                    this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
-                                else if ((currentBeat - 2 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 2) == 7)
-                                    this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 2, ensemble.baletVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 2)
+                                    this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 3)
+                                    this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 4)
+                                    this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 5)
+                                    this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 6)
+                                    this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 2, currentBaletVolume);
+                                else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 7)
+                                    this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 2, currentBaletVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 2)
-                                        this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 3)
-                                        this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 4)
-                                        this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 5)
-                                        this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 6)
-                                        this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
-                                    else if ((currentBeat - 3 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 3) == 7)
-                                        this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 3, ensemble.baletVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 2)
+                                        this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 3)
+                                        this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 4)
+                                        this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 5)
+                                        this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 6)
+                                        this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 3, currentBaletVolume);
+                                    else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 7)
+                                        this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 3, currentBaletVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 2)
-                                            this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 3)
-                                            this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 4)
-                                            this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 5)
-                                            this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 6)
-                                            this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
-                                        else if ((currentBeat - 4 >= 0) && ensemble.baletVector.get(instrumentIndex).get(currentBeat - 4) == 7)
-                                            this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 4, ensemble.baletVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_dun_bass, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 2)
+                                            this.addToBuffer(ensemble.snd_sag_bass, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 3)
+                                            this.addToBuffer(ensemble.snd_ken_bass, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 4)
+                                            this.addToBuffer(ensemble.snd_dun_bass_mute, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 5)
+                                            this.addToBuffer(ensemble.snd_sag_bass_mute, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 6)
+                                            this.addToBuffer(ensemble.snd_ken_bass_mute, byteBufferSizeInBytes * 4, currentBaletVolume);
+                                        else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 7)
+                                            this.addToBuffer(ensemble.snd_ring, byteBufferSizeInBytes * 4, currentBaletVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.baletVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentBaletVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
@@ -441,26 +462,30 @@ public class MainActivity extends AppCompatActivity
                 // Shek // 0=empty, 1=snd_shek
                 for (int instrumentIndex = 0; instrumentIndex < ensemble.shekVector.size(); instrumentIndex++) { // All i Shek at bar currentBeat
                     if (ensemble.shekStatus.get(instrumentIndex) == 1) // instrument active
-                        if (ensemble.shekVector.get(instrumentIndex).get(currentBeat) == 1)
-                            this.addToBuffer(ensemble.snd_shek, 0, ensemble.shekVolume.get(instrumentIndex));
-                        else if (ensemble.shekVector.get(instrumentIndex).get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 1 >= 0) && ensemble.shekVector.get(instrumentIndex).get(currentBeat - 1) == 1)
-                                this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes, ensemble.shekVolume.get(instrumentIndex));
+                    {
+                        Vector<Integer> currentShek = ensemble.shekVector.get(instrumentIndex);
+                        Integer currentShekVolume = ensemble.shekVolume.get(instrumentIndex);
+                        if (currentShek.get(currentBeat) == 1)
+                            this.addToBuffer(ensemble.snd_shek, 0, currentShekVolume);
+                        else if (currentShek.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
+                            if ((currentBeat - 1 >= 0) && currentShek.get(currentBeat - 1) == 1)
+                                this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes, currentShekVolume);
                             else { // Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 2 >= 0) && ensemble.shekVector.get(instrumentIndex).get(currentBeat - 2) == 1)
-                                    this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 2, ensemble.shekVolume.get(instrumentIndex));
+                                if ((currentBeat - 2 >= 0) && currentShek.get(currentBeat - 2) == 1)
+                                    this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 2, currentShekVolume);
                                 else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 3 >= 0) && ensemble.shekVector.get(instrumentIndex).get(currentBeat - 3) == 1)
-                                        this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 3, ensemble.shekVolume.get(instrumentIndex));
+                                    if ((currentBeat - 3 >= 0) && currentShek.get(currentBeat - 3) == 1)
+                                        this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 3, currentShekVolume);
                                     else {// Silence, check previous to fill with continuing sound
-                                        if ((currentBeat - 4 >= 0) && ensemble.shekVector.get(instrumentIndex).get(currentBeat - 4) == 1)
-                                            this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 4, ensemble.shekVolume.get(instrumentIndex));
+                                        if ((currentBeat - 4 >= 0) && currentShek.get(currentBeat - 4) == 1)
+                                            this.addToBuffer(ensemble.snd_shek, byteBufferSizeInBytes * 4, currentShekVolume);
                                         else
-                                            this.addToBuffer(ensemble.snd_silence, 0, ensemble.shekVolume.get(instrumentIndex));
+                                            this.addToBuffer(ensemble.snd_silence, 0, currentShekVolume);
                                     }
                                 }
                             }
                         }
+                    }
                 }
 
                 if (!ensemble.onPlay) // Do nothing if play stopped
