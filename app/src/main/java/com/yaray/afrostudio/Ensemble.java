@@ -90,6 +90,9 @@ public class Ensemble {
     boolean onLoop;
     boolean onPlay;
     boolean flagEnsembleUpdate;
+
+    private SoundBank soundBank;
+
     byte[] snd_silence;
     byte[][] snd_djembe_bass;
     byte[][] snd_djembe_tone;
@@ -126,7 +129,8 @@ public class Ensemble {
         bpm = 300;
         onLoop = true;
         onPlay = false;
-        this.loadSounds(activityContext);
+        soundBank = new SoundBank();
+        loadSounds(activityContext);
     }
 
     public void clearEnsemble() {
@@ -199,6 +203,42 @@ public class Ensemble {
     }
 
     // Playback Functions
+
+    private void loadSoundsNEW(final android.content.Context activityContext) {
+        // Init AudioTrack
+        int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize, AudioTrack.MODE_STREAM);
+
+        // Load all sounds using SoundBank
+        soundBank.loadAllSounds(activityContext);
+    }
+
+    // Helper method to get sounds with variance support for djembe
+    private byte[] getDjembeSound(String soundType, int instrumentIndex) {
+        // Each djembe instrument has 3 variations cycled through
+        int variation = instrumentIndex % 3;
+        return soundBank.getSound("djembe", soundType, variation);
+    }
+
+    // Helper method to get sounds for other instruments (no variations)
+    private byte[] getSound(String family, String soundType) {
+        return soundBank.getSound(family, soundType, 0);
+    }
+
+    // Helper method to get silence
+    private byte[] getSilence() {
+        return soundBank.getSound("special", "silence", 0);
+    }
+
+    // Helper method to get ring sound
+    private byte[] getRingSound() {
+        return soundBank.getSound("special", "ring", 0);
+    }
+
+    public SoundBank getSoundBank() {
+        return soundBank;
+    }
+
     private void loadSounds(final android.content.Context activityContext) {
         // Init AudioTrack
         int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);

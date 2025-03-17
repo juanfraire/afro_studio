@@ -54,7 +54,7 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
 
     @Override // Runs on separate Thread! No UI Updates
     protected Void doInBackground(String... strings) {
-
+        SoundBank soundBank = ensemble.getSoundBank();
         ensemble.audioTrack.play();
         for (int currentBeat = 0; currentBeat < (ensemble.getBeats() + 4); currentBeat++) {
 
