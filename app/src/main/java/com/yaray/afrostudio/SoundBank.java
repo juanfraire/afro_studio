@@ -59,6 +59,10 @@ public class SoundBank {
         return sounds.get(family).get(soundType)[variant];
     }
 
+    public byte[] getSound(String family, String soundType) {
+        return getSound(family, soundType, 0); // Default variant to 0
+    }
+
     /**
      * Loads all sounds from resources
      *
