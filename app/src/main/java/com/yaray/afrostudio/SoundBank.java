@@ -93,12 +93,16 @@ public class SoundBank {
         String[] instruments = {"dun", "ken", "sag"};
         String[] soundTypes = {"bass", "bass_mute", "bass_bell", "bell", "bass_bell_mute"};
 
+        // TODO: interesting, we only use "bell", "bass_bell" and "bass_bell_mute". Can we use the others?
+
         for (String instrument : instruments) {
             for (String soundType : soundTypes) {
                 int resId = getResourceId(context, "snd_" + instrument + "_" + soundType, "raw");
                 addSound(instrument, soundType, 0, loadRawSound(context, resId));
             }
         }
+
+        // TODO: to simplify calls, we can add copies of the sounds for "balet" instrument with own names
 
         // Load shekere sounds
         addSound("shek", "standard", 0, loadRawSound(context,
