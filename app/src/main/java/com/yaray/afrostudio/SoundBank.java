@@ -171,42 +171,85 @@ public class SoundBank {
     private byte[] createSilenceBuffer(int size) {
         return new byte[size]; // Already filled with zeros
     }
+    /**
+     * Reads a WAV file header to get the data chunk size.
+     *
+     * @param wavStream Input stream containing WAV data
+     * @return Size of the data chunk in bytes, or -1 if an error occurred
+     * @throws IOException If there's an error reading from the stream
+     */
+    private int readWavHeader(InputStream wavStream) throws IOException {
+        final int HEADER_SIZE = 44;  // Standard WAV header size
+        final int CHUNK_DESCRIPTOR_SIZE = 8;  // Size of chunk descriptor
+        final String DATA_MARKER = "data";  // Marker for the data chunk
 
-    private int readWavHeader(InputStream wavStream) {     // Read WAV Header
-        final int HEADER_SIZE = 44;
-        int dataSize = 0;
-        try {
-            boolean err=false;
-            ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            if (wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity()) != buffer.capacity())
-                err=true; //Log.e(TAG, "Not enough bytes read from snd file header!");
-            buffer.rewind();
-            buffer.position(buffer.position() + 20);
-            int format = buffer.getShort();
-            //Logd(TAG, "WavReader encoding (1 expected): " + format); // 1 = Linear PCM
-            int channels = buffer.getShort();
-            //Logd(TAG, "WavReader channels (2 expected): " + channels);
-            int rate = buffer.getInt();
-            //Logd(TAG, "WavReader rate (44100 expected): " + rate); //44100
-            buffer.position(buffer.position() + 6);
-            int bits = buffer.getShort();
-            //Logd(TAG, "WavReader bits (16 expected): " + bits); // 16 bits
-            while (buffer.getInt() != 0x61746164) { // "data" marker
-                //Logd(TAG, "WavReader Skipping non-data chunk");
-                int size = buffer.getInt();
-                if (wavStream.skip(size) != size)
-                    err=true;//Log.e(TAG, "Not enough bytes skip from snd file header!");
-                buffer.rewind();
-                if (wavStream.read(buffer.array(), buffer.arrayOffset(), 8) != 8)
-                    err=true;//Log.e(TAG, "Not enough bytes read from snd file header!");
-                buffer.rewind();
-            }
-            dataSize = buffer.getInt();
-            //Logd(TAG, "WavReader dataSize (0+ expected): " + dataSize + " Bytes"); // 16 bits
-        } catch (IOException ie) {
-            ie.printStackTrace();
+        ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        // Read the entire header
+        if (wavStream.read(buffer.array(), 0, buffer.capacity()) != buffer.capacity()) {
+            Log.e(TAG, "Failed to read WAV header");
+            return -1;
         }
-        return dataSize; //  total number of bytes in the chunk data
+
+        buffer.rewind();
+
+        // Skip RIFF header (4) + chunk size (4) + WAVE format (4) + fmt marker (4) + fmt chunk size (4)
+        buffer.position(20);
+
+        // Verify format is PCM (1)
+        int format = buffer.getShort();
+        if (format != 1) {
+            Log.w(TAG, "Unexpected WAV format: " + format + " (expected 1 for PCM)");
+        }
+
+        // Read important format data
+        int channels = buffer.getShort();
+        int sampleRate = buffer.getInt();
+
+        // Skip byte rate (4) + block align (2)
+        buffer.position(buffer.position() + 6);
+
+        // Read bits per sample
+        int bitsPerSample = buffer.getShort();
+
+        if (channels != 2 || sampleRate != 44100 || bitsPerSample != 16) {
+            Log.w(TAG, String.format("Non-standard WAV format: channels=%d, rate=%d, bits=%d",
+                    channels, sampleRate, bitsPerSample));
+        }
+
+        // Look for the data chunk
+        int chunkId = buffer.getInt();
+        while (chunkId != 0x61746164) {  // "data" in little-endian
+            // Read size of the current chunk
+            int chunkSize = buffer.getInt();
+
+            // Skip this chunk
+            if (wavStream.skip(chunkSize) != chunkSize) {
+                Log.e(TAG, "Failed to skip non-data chunk");
+                return -1;
+            }
+
+            // Read next chunk header
+            buffer.rewind();
+            if (wavStream.read(buffer.array(), 0, CHUNK_DESCRIPTOR_SIZE) != CHUNK_DESCRIPTOR_SIZE) {
+                Log.e(TAG, "Failed to read chunk descriptor");
+                return -1;
+            }
+
+            buffer.rewind();
+            chunkId = buffer.getInt();
+        }
+
+        // Read the data chunk size
+        int dataSize = buffer.getInt();
+
+        if (dataSize <= 0) {
+            Log.e(TAG, "Invalid data chunk size: " + dataSize);
+            return -1;
+        }
+
+        return dataSize;
     }
+
 }
