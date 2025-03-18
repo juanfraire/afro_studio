@@ -383,9 +383,17 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
             checkPreviousBeats(family, instrumentPattern, currentBeat, volume, variant, offset);
         }
     }
-
+/*
+1. When a beat doesn't have a sound directly assigned to it (soundCode equals 0), this method looks back at previous beats.
+2. It searches up to 4 beats back to find the most recent beat that had a sound played.
+3. When it finds a previous beat with a sound, it adds that sound to the current buffer, but with an offset that corresponds to how many beats back it was.
+4. The offset ensures the trailing sound plays at the correct position within the current time slice.
+5. If no sound was played in the previous beats, it adds silence.
+ */
     private void checkPreviousBeats(String family, Vector<Integer> pattern, int currentBeat,
                                     int volume, int variant, int offset) {
+
+
         // Check up to MAX_BEATS_BACK for trailing sound
         final int MAX_BEATS_BACK = 4;
 
