@@ -1,6 +1,8 @@
 package com.yaray.afrostudio;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +14,8 @@ import java.util.Map;
 public class SoundBank {
     // Map of instrument families to their sound variations
     private Map<String, Map<String, byte[][]>> sounds;
+
+    private static final String TAG = "SoundBank";
 
     public SoundBank() {
         sounds = new HashMap<>();
@@ -130,18 +134,34 @@ public class SoundBank {
     }
 
     private byte[] loadRawSound(Context context, int resourceId) {
-        InputStream stream = context.getResources().openRawResource(resourceId);
-        int dataSize = readWavHeader(stream);
-        byte[] data = new byte[dataSize];
+        try (InputStream stream = context.getResources().openRawResource(resourceId)) {
+            int dataSize = readWavHeader(stream);
+            if (dataSize <= 0) {
+                Log.e(TAG, "Invalid WAV data size: " + dataSize);
+                return new byte[0];
+            }
 
-        try {
-            stream.read(data, 0, dataSize);
-            stream.close();
+            byte[] data = new byte[dataSize];
+            int bytesRead = stream.read(data, 0, dataSize);
+
+            if (bytesRead != dataSize) {
+                Log.e(TAG, "Expected to read " + dataSize + " bytes, but got " + bytesRead);
+                // Return partial data
+                byte[] partialData = new byte[bytesRead > 0 ? bytesRead : 0];
+                if (bytesRead > 0) {
+                    System.arraycopy(data, 0, partialData, 0, bytesRead);
+                }
+                return partialData;
+            }
+
+            return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error loading sound resource: " + resourceId, e);
+            return new byte[0];
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Resource not found: " + resourceId, e);
+            return new byte[0];
         }
-
-        return data;
     }
 
     private int getResourceId(Context context, String name, String defType) {
@@ -149,9 +169,7 @@ public class SoundBank {
     }
 
     private byte[] createSilenceBuffer(int size) {
-        byte[] buffer = new byte[size];
-        // Silence is all zeros, so no need to fill
-        return buffer;
+        return new byte[size]; // Already filled with zeros
     }
 
     private int readWavHeader(InputStream wavStream) {     // Read WAV Header
