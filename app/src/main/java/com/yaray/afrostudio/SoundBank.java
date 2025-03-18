@@ -102,7 +102,22 @@ public class SoundBank {
             }
         }
 
-        // TODO: to simplify calls, we can add copies of the sounds for "balet" instrument with own names
+        // Add balet sounds, reusing sounds from other instruments
+        int dunBassId = getResourceId(context, "snd_dun_bass", "raw");
+        int sagBassId = getResourceId(context, "snd_sag_bass", "raw");
+        int kenBassId = getResourceId(context, "snd_ken_bass", "raw");
+        int dunBassMuteId = getResourceId(context, "snd_dun_bass_mute", "raw");
+        int sagBassMuteId = getResourceId(context, "snd_sag_bass_mute", "raw");
+        int kenBassMuteId = getResourceId(context, "snd_ken_bass_mute", "raw");
+        int ringId = getResourceId(context, "snd_ring", "raw");
+
+        addSound("balet", "dun", 0, loadRawSound(context, dunBassId));
+        addSound("balet", "sag", 0, loadRawSound(context, sagBassId));
+        addSound("balet", "ken", 0, loadRawSound(context, kenBassId));
+        addSound("balet", "dun_mute", 0, loadRawSound(context, dunBassMuteId));
+        addSound("balet", "sag_mute", 0, loadRawSound(context, sagBassMuteId));
+        addSound("balet", "ken_mute", 0, loadRawSound(context, kenBassMuteId));
+        addSound("balet", "ring", 0, loadRawSound(context, ringId));
 
         // Load shekere sounds
         addSound("shek", "standard", 0, loadRawSound(context,

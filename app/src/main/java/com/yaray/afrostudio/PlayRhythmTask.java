@@ -188,96 +188,6 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
                 break;
 
             // Balet // 0=empty, 1=snd_dun_bass, 2=snd_sag_bass, 3=snd_ken_bass
-/*
-            for (int instrumentIndex = 0; instrumentIndex < ensemble.baletVector.size(); instrumentIndex++) { // All i
-                if (ensemble.baletStatus.get(instrumentIndex) == 1) // instrument active
-                {
-                    Vector<Integer> currentBalet = ensemble.baletVector.get(instrumentIndex);
-                    Integer currentBaletVolume = ensemble.baletVolume.get(instrumentIndex);
-                    if (currentBalet.get(currentBeat) == 1)
-                        this.addToBuffer(soundBank.getSound("dun", "bass"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 2)
-                        this.addToBuffer(soundBank.getSound("sag", "bass"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 3)
-                        this.addToBuffer(soundBank.getSound("ken", "bass"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 4)
-                        this.addToBuffer(soundBank.getSound("dun", "bass_mute"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 5)
-                        this.addToBuffer(soundBank.getSound("sag", "bass_mute"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 6)
-                        this.addToBuffer(soundBank.getSound("ken", "bass_mute"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 7)
-                        this.addToBuffer(soundBank.getSound("special", "ring"), 0, currentBaletVolume);
-                    else if (currentBalet.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                        if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 1)
-                            this.addToBuffer(soundBank.getSound("dun", "bass"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 2)
-                            this.addToBuffer(soundBank.getSound("sag", "bass"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 3)
-                            this.addToBuffer(soundBank.getSound("ken", "bass"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 4)
-                            this.addToBuffer(soundBank.getSound("dun", "bass_mute"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 5)
-                            this.addToBuffer(soundBank.getSound("sag", "bass_mute"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 6)
-                            this.addToBuffer(soundBank.getSound("ken", "bass_mute"), byteBufferSizeInBytes, currentBaletVolume);
-                        else if ((currentBeat - 1 >= 0) && currentBalet.get(currentBeat - 1) == 7)
-                            this.addToBuffer(soundBank.getSound("special", "ring"), byteBufferSizeInBytes, currentBaletVolume);
-                        else { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 1)
-                                this.addToBuffer(soundBank.getSound("dun", "bass"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 2)
-                                this.addToBuffer(soundBank.getSound("sag", "bass"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 3)
-                                this.addToBuffer(soundBank.getSound("ken", "bass"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 4)
-                                this.addToBuffer(soundBank.getSound("dun", "bass_mute"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 5)
-                                this.addToBuffer(soundBank.getSound("sag", "bass_mute"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 6)
-                                this.addToBuffer(soundBank.getSound("ken", "bass_mute"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else if ((currentBeat - 2 >= 0) && currentBalet.get(currentBeat - 2) == 7)
-                                this.addToBuffer(soundBank.getSound("special", "ring"), byteBufferSizeInBytes * 2, currentBaletVolume);
-                            else {// Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 1)
-                                    this.addToBuffer(soundBank.getSound("dun", "bass"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 2)
-                                    this.addToBuffer(soundBank.getSound("sag", "bass"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 3)
-                                    this.addToBuffer(soundBank.getSound("ken", "bass"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 4)
-                                    this.addToBuffer(soundBank.getSound("dun", "bass_mute"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 5)
-                                    this.addToBuffer(soundBank.getSound("sag", "bass_mute"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 6)
-                                    this.addToBuffer(soundBank.getSound("ken", "bass_mute"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else if ((currentBeat - 3 >= 0) && currentBalet.get(currentBeat - 3) == 7)
-                                    this.addToBuffer(soundBank.getSound("special", "ring"), byteBufferSizeInBytes * 3, currentBaletVolume);
-                                else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 1)
-                                        this.addToBuffer(soundBank.getSound("dun", "bass"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 2)
-                                        this.addToBuffer(soundBank.getSound("sag", "bass"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 3)
-                                        this.addToBuffer(soundBank.getSound("ken", "bass"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 4)
-                                        this.addToBuffer(soundBank.getSound("dun", "bass_mute"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 5)
-                                        this.addToBuffer(soundBank.getSound("sag", "bass_mute"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 6)
-                                        this.addToBuffer(soundBank.getSound("ken", "bass_mute"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentBalet.get(currentBeat - 4) == 7)
-                                        this.addToBuffer(soundBank.getSound("special", "ring"), byteBufferSizeInBytes * 4, currentBaletVolume);
-                                    else
-                                        this.addToBuffer(soundBank.getSound("special", "silence"), 0, currentBaletVolume);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-*/
-           // TODO: fix balet, it doesn't work when converted to the new method
             processInstrumentGroup("balet", ensemble.baletVector, ensemble.baletStatus,
                     ensemble.baletVolume, currentBeat);
 
@@ -508,13 +418,13 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
 
         // Define mappings for balet
         Map<Integer, String> baletMap = new HashMap<>();
-        baletMap.put(1, "bass");
-        baletMap.put(2, "bass");  // uses sag bass
-        baletMap.put(3, "bass");  // uses ken bass
-        baletMap.put(4, "bass_mute");
-        baletMap.put(5, "bass_mute");  // uses sag bass_mute
-        baletMap.put(6, "bass_mute");  // uses ken bass_mute
-        baletMap.put(7, "ring");  // special ring sound
+        baletMap.put(1, "dun");       // uses dun bass
+        baletMap.put(2, "sag");       // uses sag bass
+        baletMap.put(3, "ken");       // uses ken bass
+        baletMap.put(4, "dun_mute");  // uses dun bass_mute
+        baletMap.put(5, "sag_mute");  // uses sag bass_mute
+        baletMap.put(6, "ken_mute");  // uses ken bass_mute
+        baletMap.put(7, "ring");      // special ring sound
 
         // Define mappings for shek
         Map<Integer, String> shekMap = new HashMap<>();
