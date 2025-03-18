@@ -67,70 +67,68 @@ public class SoundBank {
         return getSound(family, soundType, 0); // Default variant to 0
     }
 
-    /**
-     * Loads all sounds from resources
-     *
-     * @param context The application context
-     */
     public void loadAllSounds(Context context) {
-        // Load djembe sounds with variations
-        for (int variant = 0; variant < 3; variant++) {
-            int bassId = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_bass", "raw");
-            int toneId = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_tone", "raw");
-            int slapId = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_slap", "raw");
+        // Define sound mappings for all instruments
+        Map<String, Map<String, String[]>> instrumentSounds = new HashMap<>();
 
-            addSound("djembe", "bass", variant, loadRawSound(context, bassId));
-            addSound("djembe", "tone", variant, loadRawSound(context, toneId));
-            addSound("djembe", "slap", variant, loadRawSound(context, slapId));
+        // Djembe sounds with 3 variants
+        Map<String, String[]> djembeSounds = new HashMap<>();
+        djembeSounds.put("bass", new String[]{"snd_djembe_bass", "snd_djembe2_bass", "snd_djembe3_bass"});
+        djembeSounds.put("tone", new String[]{"snd_djembe_tone", "snd_djembe2_tone", "snd_djembe3_tone"});
+        djembeSounds.put("slap", new String[]{"snd_djembe_slap", "snd_djembe2_slap", "snd_djembe3_slap"});
+        djembeSounds.put("bass_flam", new String[]{"snd_djembe_bass_flam", "snd_djembe2_bass_flam", "snd_djembe3_bass_flam"});
+        djembeSounds.put("tone_flam", new String[]{"snd_djembe_tone_flam", "snd_djembe2_tone_flam", "snd_djembe3_tone_flam"});
+        djembeSounds.put("slap_flam", new String[]{"snd_djembe_slap_flam", "snd_djembe2_slap_flam", "snd_djembe3_slap_flam"});
+        instrumentSounds.put("djembe", djembeSounds);
 
-            // Also load flam variations
-            int bassFlam = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_bass_flam", "raw");
-            int toneFlam = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_tone_flam", "raw");
-            int slapFlam = getResourceId(context, "snd_djembe" + (variant > 0 ? (variant+1) : "") + "_slap_flam", "raw");
-
-            addSound("djembe", "bass_flam", variant, loadRawSound(context, bassFlam));
-            addSound("djembe", "tone_flam", variant, loadRawSound(context, toneFlam));
-            addSound("djembe", "slap_flam", variant, loadRawSound(context, slapFlam));
+        // Dun, Ken, and Sag sounds (single variant)
+        String[] percussion = {"dun", "ken", "sag"};
+        for (String instrument : percussion) {
+            Map<String, String[]> sounds = new HashMap<>();
+            sounds.put("bass", new String[]{"snd_" + instrument + "_bass"});
+            sounds.put("bass_mute", new String[]{"snd_" + instrument + "_bass_mute"});
+            sounds.put("bass_bell", new String[]{"snd_" + instrument + "_bass_bell"});
+            sounds.put("bell", new String[]{"snd_" + instrument + "_bell"});
+            sounds.put("bass_bell_mute", new String[]{"snd_" + instrument + "_bass_bell_mute"});
+            instrumentSounds.put(instrument, sounds);
         }
-
-        // Load other instruments (single variant)
-        String[] instruments = {"dun", "ken", "sag"};
-        String[] soundTypes = {"bass", "bass_mute", "bass_bell", "bell", "bass_bell_mute"};
-
         // TODO: interesting, we only use "bell", "bass_bell" and "bass_bell_mute". Can we use the others?
 
-        for (String instrument : instruments) {
-            for (String soundType : soundTypes) {
-                int resId = getResourceId(context, "snd_" + instrument + "_" + soundType, "raw");
-                addSound(instrument, soundType, 0, loadRawSound(context, resId));
+        // Balet sounds (reusing other sounds)
+        Map<String, String[]> baletSounds = new HashMap<>();
+        baletSounds.put("dun", new String[]{"snd_dun_bass"});
+        baletSounds.put("sag", new String[]{"snd_sag_bass"});
+        baletSounds.put("ken", new String[]{"snd_ken_bass"});
+        baletSounds.put("dun_mute", new String[]{"snd_dun_bass_mute"});
+        baletSounds.put("sag_mute", new String[]{"snd_sag_bass_mute"});
+        baletSounds.put("ken_mute", new String[]{"snd_ken_bass_mute"});
+        baletSounds.put("ring", new String[]{"snd_ring"});
+        instrumentSounds.put("balet", baletSounds);
+
+        // Shekere sound
+        Map<String, String[]> shekSounds = new HashMap<>();
+        shekSounds.put("standard", new String[]{"snd_shek"});
+        instrumentSounds.put("shek", shekSounds);
+
+        // Special sounds
+        Map<String, String[]> specialSounds = new HashMap<>();
+        specialSounds.put("ring", new String[]{"snd_ring"});
+        instrumentSounds.put("special", specialSounds);
+
+        // Load all defined sounds
+        for (String family : instrumentSounds.keySet()) {
+            Map<String, String[]> familySounds = instrumentSounds.get(family);
+            for (String soundType : familySounds.keySet()) {
+                String[] resourceNames = familySounds.get(soundType);
+                for (int variant = 0; variant < resourceNames.length; variant++) {
+                    int resId = getResourceId(context, resourceNames[variant], "raw");
+                    addSound(family, soundType, variant, loadRawSound(context, resId));
+                }
             }
         }
 
-        // Add balet sounds, reusing sounds from other instruments
-        int dunBassId = getResourceId(context, "snd_dun_bass", "raw");
-        int sagBassId = getResourceId(context, "snd_sag_bass", "raw");
-        int kenBassId = getResourceId(context, "snd_ken_bass", "raw");
-        int dunBassMuteId = getResourceId(context, "snd_dun_bass_mute", "raw");
-        int sagBassMuteId = getResourceId(context, "snd_sag_bass_mute", "raw");
-        int kenBassMuteId = getResourceId(context, "snd_ken_bass_mute", "raw");
-        int ringId = getResourceId(context, "snd_ring", "raw");
-
-        addSound("balet", "dun", 0, loadRawSound(context, dunBassId));
-        addSound("balet", "sag", 0, loadRawSound(context, sagBassId));
-        addSound("balet", "ken", 0, loadRawSound(context, kenBassId));
-        addSound("balet", "dun_mute", 0, loadRawSound(context, dunBassMuteId));
-        addSound("balet", "sag_mute", 0, loadRawSound(context, sagBassMuteId));
-        addSound("balet", "ken_mute", 0, loadRawSound(context, kenBassMuteId));
-        addSound("balet", "ring", 0, loadRawSound(context, ringId));
-
-        // Load shekere sounds
-        addSound("shek", "standard", 0, loadRawSound(context,
-                getResourceId(context, "snd_shek", "raw")));
-
-        // Load silence and other special sounds
+        // Add silence special sound (created programmatically)
         addSound("special", "silence", 0, createSilenceBuffer(176400)); // 500ms
-        addSound("special", "ring", 0, loadRawSound(context,
-                getResourceId(context, "snd_ring", "raw")));
     }
 
     private byte[] loadRawSound(Context context, int resourceId) {
