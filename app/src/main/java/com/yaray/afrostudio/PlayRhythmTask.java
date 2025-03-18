@@ -73,92 +73,6 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
 
             this.clearBuffer();
 
-/*            for (int instrumentIndex = 0; instrumentIndex < ensemble.djembeVector.size(); instrumentIndex++) { // All i Djembes at bar currentBeat
-                Vector<Integer> currentDjembe = ensemble.djembeVector.get(instrumentIndex);
-                if ((currentDjembe.get(currentBeat) != 0) && (ensemble.djembeStatus.get(instrumentIndex) == 1)) { // Set offset
-                    Random r = new Random(); // Humanization on time
-                    djembeOffset.setElementAt(r.nextInt(200) * 2, instrumentIndex);
-                }
-
-                if (ensemble.djembeStatus.get(instrumentIndex) == 1) // instrument active
-                {
-                    Integer currentDjembeOffset = djembeOffset.get(instrumentIndex);
-                    Integer currentDjembeVolume = ensemble.djembeVolume.get(instrumentIndex);
-                    int variant = instrumentIndex % 3;
-
-                    if (currentDjembe.get(currentBeat) == 1)
-                        this.addToBuffer(soundBank.getSound("djembe", "bass", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 2)
-                        this.addToBuffer(soundBank.getSound("djembe", "tone", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 3)
-                        this.addToBuffer(soundBank.getSound("djembe", "slap", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 4)
-                        this.addToBuffer(soundBank.getSound("djembe", "bass_flam", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 5)
-                        this.addToBuffer(soundBank.getSound("djembe", "tone_flam", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 6)
-                        this.addToBuffer(soundBank.getSound("djembe", "slap_flam", variant), currentDjembeOffset, currentDjembeVolume);
-                    else if (currentDjembe.get(currentBeat) == 0) { // Silence, check previous to fill with continuing sound
-                        if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 1)
-                            this.addToBuffer(soundBank.getSound("djembe", "bass", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 2)
-                            this.addToBuffer(soundBank.getSound("djembe", "tone", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 3)
-                            this.addToBuffer(soundBank.getSound("djembe", "slap", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 4)
-                            this.addToBuffer(soundBank.getSound("djembe", "bass_flam", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 5)
-                            this.addToBuffer(soundBank.getSound("djembe", "tone_flam", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else if ((currentBeat - 1 >= 0) && currentDjembe.get(currentBeat - 1) == 6)
-                            this.addToBuffer(soundBank.getSound("djembe", "slap_flam", variant), byteBufferSizeInBytes + currentDjembeOffset, currentDjembeVolume);
-                        else { // Silence, check previous to fill with continuing sound
-                            if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 1)
-                                this.addToBuffer(soundBank.getSound("djembe", "bass", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 2)
-                                this.addToBuffer(soundBank.getSound("djembe", "tone", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 3)
-                                this.addToBuffer(soundBank.getSound("djembe", "slap", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 4)
-                                this.addToBuffer(soundBank.getSound("djembe", "bass_flam", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 5)
-                                this.addToBuffer(soundBank.getSound("djembe", "tone_flam", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else if ((currentBeat - 2 >= 0) && currentDjembe.get(currentBeat - 2) == 6)
-                                this.addToBuffer(soundBank.getSound("djembe", "slap_flam", variant), byteBufferSizeInBytes * 2 + currentDjembeOffset, currentDjembeVolume);
-                            else {// Silence, check previous to fill with continuing sound
-                                if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 1)
-                                    this.addToBuffer(soundBank.getSound("djembe", "bass", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 2)
-                                    this.addToBuffer(soundBank.getSound("djembe", "tone", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 3)
-                                    this.addToBuffer(soundBank.getSound("djembe", "slap", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 4)
-                                    this.addToBuffer(soundBank.getSound("djembe", "bass_flam", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 5)
-                                    this.addToBuffer(soundBank.getSound("djembe", "tone_flam", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else if ((currentBeat - 3 >= 0) && currentDjembe.get(currentBeat - 3) == 6)
-                                    this.addToBuffer(soundBank.getSound("djembe", "slap_flam", variant), byteBufferSizeInBytes * 3 + currentDjembeOffset, currentDjembeVolume);
-                                else {// Silence, check previous to fill with continuing sound
-                                    if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 1)
-                                        this.addToBuffer(soundBank.getSound("djembe", "bass", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 2)
-                                        this.addToBuffer(soundBank.getSound("djembe", "tone", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 3)
-                                        this.addToBuffer(soundBank.getSound("djembe", "slap", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 4)
-                                        this.addToBuffer(soundBank.getSound("djembe", "bass_flam", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 5)
-                                        this.addToBuffer(soundBank.getSound("djembe", "tone_flam", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else if ((currentBeat - 4 >= 0) && currentDjembe.get(currentBeat - 4) == 6)
-                                        this.addToBuffer(soundBank.getSound("djembe", "slap_flam", variant), byteBufferSizeInBytes * 4 + currentDjembeOffset, currentDjembeVolume);
-                                    else
-                                        this.addToBuffer(soundBank.getSound("special", "silence", 0), 0, currentDjembeVolume);
-                                }
-                            }
-                        }
-                    }
-                }
-            }*/
-            // TODO: implement lost djembeOffset before completing the switch to the new method
             processInstrumentGroup("djembe", ensemble.djembeVector, ensemble.djembeStatus,
                     ensemble.djembeVolume, currentBeat);
 
@@ -372,20 +286,6 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
         }
     }
 
-    private void processInstrumentSound(String family, String soundType, int variant, int currentBeat,
-                                        Vector<Integer> instrumentPattern, int volume) {
-        int soundCode = instrumentPattern.get(currentBeat);
-
-        if (soundCode > 0) {
-            // Play the specific sound based on code
-            String soundName = getSoundNameForCode(family, soundCode);
-            addToBuffer(soundBank.getSound(family, soundName, variant), 0, volume);
-        } else {
-            // Check previous beats for trailing sounds
-            checkPreviousBeats(family, instrumentPattern, currentBeat, volume, variant);
-        }
-    }
-
     private String getSoundNameForCode(String family, int code) {
         Map<String, Map<Integer, String>> soundMap = new HashMap<>();
 
@@ -447,8 +347,45 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
         return soundMap.getOrDefault(family, new HashMap<>()).getOrDefault(code, "silence");
     }
 
+    private void processInstrumentGroup(String family, List<Vector<Integer>> patterns,
+                                        List<Integer> status, List<Integer> volumes, int currentBeat) {
+        for (int i = 0; i < patterns.size(); i++) {
+            if (status.get(i) == 1) {  // instrument is active
+                int variant = family.equals("djembe") ? i % 3 : 0;
+                int offset = 0;
+
+                // Apply humanization only for djembe instruments
+                if (family.equals("djembe")) {
+                    Vector<Integer> pattern = patterns.get(i);
+                    // Set new offset when a sound plays
+                    if (pattern.get(currentBeat) != 0) {
+                        Random r = new Random();
+                        djembeOffset.setElementAt(r.nextInt(200) * 2, i);
+                    }
+                    offset = djembeOffset.get(i);
+                }
+
+                processInstrumentSound(family, null, variant, currentBeat, patterns.get(i), volumes.get(i), offset);
+            }
+        }
+    }
+
+    private void processInstrumentSound(String family, String soundType, int variant, int currentBeat,
+                                        Vector<Integer> instrumentPattern, int volume, int offset) {
+        int soundCode = instrumentPattern.get(currentBeat);
+
+        if (soundCode > 0) {
+            // Play the specific sound based on code with offset (offset = 0 for non-djembe instruments)
+            String soundName = getSoundNameForCode(family, soundCode);
+            addToBuffer(soundBank.getSound(family, soundName, variant), offset, volume);
+        } else {
+            // Check previous beats for trailing sounds with offset
+            checkPreviousBeats(family, instrumentPattern, currentBeat, volume, variant, offset);
+        }
+    }
+
     private void checkPreviousBeats(String family, Vector<Integer> pattern, int currentBeat,
-                                    int volume, int variant) {
+                                    int volume, int variant, int offset) {
         // Check up to MAX_BEATS_BACK for trailing sound
         final int MAX_BEATS_BACK = 4;
 
@@ -458,8 +395,9 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
                 int prevSoundCode = pattern.get(prevBeat);
                 if (prevSoundCode > 0) {
                     String soundName = getSoundNameForCode(family, prevSoundCode);
+                    // Add offset to the buffer timing
                     addToBuffer(soundBank.getSound(family, soundName, variant),
-                            byteBufferSizeInBytes * beatsBack, volume);
+                            byteBufferSizeInBytes * beatsBack + offset, volume);
                     return;
                 }
             }
@@ -467,15 +405,5 @@ public class PlayRhythmTask extends AsyncTask<String, Integer, Void> { //<Params
 
         // No previous sound found, play silence
         addToBuffer(soundBank.getSound("special", "silence"), 0, volume);
-    }
-
-    private void processInstrumentGroup(String family, List<Vector<Integer>> patterns,
-                                        List<Integer> status, List<Integer> volumes, int currentBeat) {
-        for (int i = 0; i < patterns.size(); i++) {
-            if (status.get(i) == 1) {  // instrument is active
-                int variant = family.equals("djembe") ? i % 3 : 0;
-                processInstrumentSound(family, null, variant, currentBeat, patterns.get(i), volumes.get(i));
-            }
-        }
     }
 }
