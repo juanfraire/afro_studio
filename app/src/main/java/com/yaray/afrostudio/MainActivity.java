@@ -48,8 +48,12 @@ import java.util.regex.PatternSyntaxException;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.yaray.afrostudio.databinding.ActivityMainBinding;
 import com.yaray.afrostudio.databinding.FragmentMainBinding;
+
+import kotlin.Unit;
 
 public class MainActivity extends AppCompatActivity
         implements
@@ -67,6 +71,7 @@ public class MainActivity extends AppCompatActivity
         DialogFragmentShare.ShareListener {
 
     private ActivityMainBinding binding;
+    private PlaybackViewModel playbackViewModel;
 
     @SuppressWarnings("unused")
     private static final String TAG = "AfroStudio.MainActivity";
@@ -240,6 +245,26 @@ public class MainActivity extends AppCompatActivity
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Initialize ViewModel
+        playbackViewModel = new ViewModelProvider(this).get(PlaybackViewModel.class);
+
+        // Set up observers
+        playbackViewModel.isPlaying().observe(this, isPlaying -> {
+            FragmentMainBinding fragmentBinding = getFragmentBinding();
+            if (fragmentBinding != null) {
+                if (isPlaying) {
+                    fragmentBinding.butPlay.setImageResource(R.drawable.but_stop);
+                } else {
+                    fragmentBinding.butPlay.setImageResource(R.drawable.but_play);
+                }
+            }
+        });
+
+        playbackViewModel.getCurrentBeat().observe(this, currentBeat -> {
+            // Update UI for the current beat (handle the onProgressUpdate from AsyncTask)
+            updateBeatProgress(currentBeat);
+        });
+
         // Init Stuff
         settings = getSharedPreferences(PREFS_NAME, 0);
 
@@ -344,6 +369,8 @@ public class MainActivity extends AppCompatActivity
                 EnsembleUtils.setImageScale(ensembleLayout, horizontalScrollView, MainActivity.this, iconScale, ensemble, viewAnimator);
             }
         });
+        /*
+           // this is the old way, before refactoring to ViewModel
         ImageView but_play = fragmentBinding.butPlay;
         but_play.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -373,7 +400,7 @@ public class MainActivity extends AppCompatActivity
                 return true;
             }
         });
-
+*/
         ImageView but_equ = fragmentBinding.butEqu;
         but_equ.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -383,6 +410,54 @@ public class MainActivity extends AppCompatActivity
                 dialogFragmentEqualizer.ensemble = ensemble;
                 dialogFragmentEqualizer.ensembleLayout = ensembleLayout;
                 dialogFragmentEqualizer.show(getSupportFragmentManager(), "Equalizer");
+            }
+        });
+
+// Update the play button click listener
+        ImageView but_play = fragmentBinding.butPlay;
+        but_play.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!ensemble.onPlay) { // Play
+                    playbackViewModel.startPlayback(
+                            ensemble,
+                            encoder,
+                            "",
+                            currentBeat -> {
+                                updateBeatProgress(currentBeat);
+                                return Unit.INSTANCE;
+                            },
+                            () -> {
+                                // Handle playback completion if needed
+                                return Unit.INSTANCE;
+                            }
+                    );
+                } else { // Stop
+                    playbackViewModel.stopPlayback(ensemble);
+                }
+            }
+        });
+
+// Similar updates for long click listener
+        but_play.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (!ensemble.onPlay) {
+                    playbackViewModel.startPlayback(
+                            ensemble,
+                            encoder,
+                            "record reproduce",
+                            currentBeat -> {
+                                updateBeatProgress(currentBeat);
+                                return Unit.INSTANCE;
+                            },
+                            () -> {
+                                // Handle recording completion if needed
+                                return Unit.INSTANCE;
+                            }
+                    );
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -553,15 +628,13 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         // commit unsaved changes to persistent data, stop animations and other things that may be consuming CPU
         // onResume takes the control once back
-        if (ensemble.onPlay) { // Stop Playback and recording
-            ensemble.onPlay = false;
-            try {
-                Thread.sleep(200); //wait async task to find a pause value
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-            ensemble.audioTrack.stop();
+
+
+        // UPD: No need to manually handle AsyncTask cancellation anymore
+        // The ViewModel will handle coroutine cancellation appropriately
+
+        if (ensemble.onPlay) {
+            playbackViewModel.stopPlayback(ensemble);
         }
 
         // Store work in temp file with this app hash Id.
@@ -1009,6 +1082,8 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Email not valid, using 'undefined'.", Toast.LENGTH_SHORT).show();
     }
 
+    /*
+    // before refactoring
     public void sharePositiveClick(String option){
         FragmentMainBinding fragmentBinding = getFragmentBinding();
 
@@ -1058,5 +1133,117 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+    } */
+
+    // Update sharePositiveClick method to use ViewModel
+    public void sharePositiveClick(String option) {
+        FragmentMainBinding fragmentBinding = getFragmentBinding();
+
+        if (option.equals("audio")) {
+            if (ensemble.onPlay) {
+                playbackViewModel.stopPlayback(ensemble);
+            }
+
+            fragmentBinding.butPlay.setImageResource(R.drawable.but_rec);
+            playbackViewModel.startPlayback(
+                    ensemble,
+                    encoder,
+                    "record share",
+                    currentBeat -> {
+                        updateBeatProgress(currentBeat);
+                        return Unit.INSTANCE;
+                    },
+                    () -> {
+                        // Handle share audio completion
+                        String state = Environment.getExternalStorageState();
+                        if (Environment.MEDIA_MOUNTED.equals(state)) {
+                            shareRecordedFile();
+                            return Unit.INSTANCE;
+                        } else {
+                            Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
+                            return Unit.INSTANCE;
+                        }
+                    }
+            );
+        } else if (option.equals("ensemble")) {
+            if (EnsembleUtils.AfroStudioVersion.equals("free")) { // Do not save in free version
+                EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, this);
+            } else {
+                // Save ensemble
+                EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble); //creo que puedo hacer onPlay
+                EnsembleUtils.saveEnsemble(ensemble, MainActivity.this, true, true, viewAnimator, settings.getString("user", "undefined@undefined"));
+
+                String state = Environment.getExternalStorageState();
+                if (Environment.MEDIA_MOUNTED.equals(state)) {
+                    Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+                    //sharingIntent.setType("application/octet-stream");
+                    sharingIntent.setType("application/json");
+                    try {
+                        String path = MainActivity.this.getExternalFilesDir(null).getPath();
+                        String user = settings.getString("user", "undefined@undefined").substring(0, settings.getString("user", "undefined@undefined").indexOf("@"));
+                        String fileName = ensemble.ensembleName + "_by_" + ensemble.ensembleAuthor + "_u_" + user + ".afr";
+                        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + path + "/" + fileName));
+                        startActivity(Intent.createChooser(sharingIntent, "Share via"));
+                    } catch (NullPointerException e) {
+                        Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
+    // Method to handle beat progress updates (replaces AsyncTask.onProgressUpdate)
+    private void updateBeatProgress(int currentBeat) {
+        for (int i = 1; i < ensembleLayout.getChildCount() - 1; i++) {
+            LinearLayout instrumentLayout = (LinearLayout) ensembleLayout.getChildAt(i);
+            int currentBar = 0;
+            for (int j = 0; j < instrumentLayout.getChildCount(); j++) {
+                if (String.valueOf(instrumentLayout.getChildAt(j).getTag(R.string.tag0)).contains("ico_ini") ||
+                        String.valueOf(instrumentLayout.getChildAt(j).getTag(R.string.tag0)).contains("ico_mid") ||
+                        String.valueOf(instrumentLayout.getChildAt(j).getTag(R.string.tag0)).contains("ico_end")) {
+
+                    if (((currentBar + 1) % ensemble.getBeatsPerBar()) == 0) { //Just clear this bar for the repetition issue
+                        ((ImageView) (instrumentLayout.getChildAt(j))).clearColorFilter();
+                    }
+                    if ((currentBar == currentBeat - 1) || (currentBar == ensemble.getBeats() - 1)) {//Remove Color!
+                        ((ImageView) (instrumentLayout.getChildAt(j))).clearColorFilter();
+                    }
+                    if (currentBar == currentBeat) { //Color this Bar!
+                        ((ImageView) (instrumentLayout.getChildAt(j))).setColorFilter(ContextCompat.getColor(this, R.color.playback_afrostudio));
+                    }
+                    currentBar++;
+                }
+            }
+        }
+
+        if (ensemble.flagEnsembleUpdate) { //update Ensemble
+            EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
+            EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, this, iconScale, getFragmentBinding().animatorIntro);
+            ensemble.flagEnsembleUpdate = false;
+        }
+    }
+
+    private void shareRecordedFile() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+            sharingIntent.setType("audio/*");
+            try {
+                String path = getExternalFilesDir(null).getPath();
+                String user = settings.getString("user", "undefined@undefined").substring(0,
+                        settings.getString("user", "undefined@undefined").indexOf("@"));
+                String fileName = ensemble.ensembleName + "_by_" + ensemble.ensembleAuthor + "_u_" + user + ".aac";
+                sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + path + "/" + fileName));
+                startActivity(Intent.createChooser(sharingIntent, "Share via"));
+            } catch (NullPointerException e) {
+                Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 }
+// TODO: Ensure clean coroutine cancellation
+//  The viewModelScope takes care of cancellation when the ViewModel is cleared
+//Check isActive flag regularly in long-running coroutines
+//Make sure to stop any ongoing operations in onPause/onDestroy
