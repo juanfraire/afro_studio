@@ -1016,59 +1016,6 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(MainActivity.this, "Email not valid, using 'undefined'.", Toast.LENGTH_SHORT).show();
     }
 
-    /*
-    // before refactoring
-    public void sharePositiveClick(String option){
-        FragmentMainBinding fragmentBinding = getFragmentBinding();
-
-        Log.e(TAG, "option: " + option );
-
-        // Save audio
-        if (option.equals("audio")){
-            if (ensemble.onPlay) { // Stop Playback if any
-                ensemble.onPlay = false;
-                try {
-                    Thread.sleep(500); //wait async task to find a pause value
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            ImageView but_play = fragmentBinding.butPlay;
-            but_play.setImageResource(R.drawable.but_rec);
-            PlayRhythmTask playRhythmTask = new PlayRhythmTask(ensemble, encoder, MainActivity.this, getFragmentBinding());
-            playRhythmTask.params = "record share";
-            playRhythmTask.execute("");
-        } else if (option.equals("ensemble")){
-            if (EnsembleUtils.AfroStudioVersion.equals("free")) { // Do not save in free version
-                EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, this);
-            } else {
-                // Save ensemble
-                EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble); //creo que puedo hacer onPlay
-                EnsembleUtils.saveEnsemble(ensemble, MainActivity.this, true, true, viewAnimator, settings.getString("user", "undefined@undefined"));
-
-                String state = Environment.getExternalStorageState();
-                if (Environment.MEDIA_MOUNTED.equals(state)) {
-                    Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-                    //sharingIntent.setType("application/octet-stream");
-                    sharingIntent.setType("application/json");
-                    try {
-                        String path = MainActivity.this.getExternalFilesDir(null).getPath();
-                        String user = settings.getString("user", "undefined@undefined").substring(0, settings.getString("user", "undefined@undefined").indexOf("@"));
-                        String fileName = ensemble.ensembleName + "_by_" + ensemble.ensembleAuthor + "_u_" + user + ".afr";
-                        sharingIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + path + "/" + fileName));
-                        startActivity(Intent.createChooser(sharingIntent, "Share via"));
-                    } catch (NullPointerException e) {
-                        Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Cannot access storage", Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        }
-
-    } */
-
     // Update sharePositiveClick method to use ViewModel
     public void sharePositiveClick(String option) {
         FragmentMainBinding fragmentBinding = getFragmentBinding();
