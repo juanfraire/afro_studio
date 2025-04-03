@@ -7,7 +7,6 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -72,6 +71,7 @@ public class MainActivity extends AppCompatActivity
 
     private ActivityMainBinding binding;
     private PlaybackViewModel playbackViewModel;
+    private ServerViewModel serverViewModel;
 
     @SuppressWarnings("unused")
     private static final String TAG = "AfroStudio.MainActivity";
@@ -85,154 +85,8 @@ public class MainActivity extends AppCompatActivity
     float iconScale = (float) 0.75; // 1 = 37.5 x 52.5 dp
     Ensemble ensemble;
 
-
-
-    DialogFragmentLoad dialogFragmentLoad; // to access dialog from connectServerAsynctastk
+    DialogFragmentLoad dialogFragmentLoad; // to access dialog from connectServerAsynctask
     Encoder encoder;
-
-    private class ConnectServerTask extends AsyncTask<String, Integer, Void> { //<Params, Progress, Result>
-
-        String response = null;
-        String username = null;
-        String action = null;
-        String parameters = null;
-        String ensembleName;
-        String ensembleAuthor;
-
-        @Override // Runs on UI
-        protected void onPreExecute() {
-
-        }
-
-        @Override // Runs on separate Thread! No UI Updates
-        protected Void doInBackground(String... strings) {
-
-            username = strings[0];
-            action = strings[1]; //setEnsemble, getEnsemble, getEnsembleList
-
-            switch (action) {
-                case "register":
-                    parameters = "username=" + username + "&action=" + action;
-                    break;
-                case "setEnsemble":
-                    ensembleName = strings[2];
-                    ensembleAuthor = strings[3];
-                    String ensembleJSON = strings[4];
-                    parameters = "username=" + username + "&action=" + action + "&ensemblename=" + ensembleName + "&ensembleauthor=" + ensembleAuthor + "&ensemblejson=" + ensembleJSON;
-                    break;
-                case "getEnsemble":
-                    ensembleName = strings[2];
-                    ensembleAuthor = strings[3];
-                    String ensembleUser = strings[4];
-                    parameters = "username=" + username + "&action=" + action + "&ensemblename=" + ensembleName + "&ensembleauthor=" + ensembleAuthor + "&ensembleuser=" + ensembleUser;
-                    break;
-                case "getEnsembleList":
-                    parameters = "username=" + username + "&action=" + action;
-                    break;
-                case "deleteEnsemble":
-                    ensembleName = strings[2];
-                    ensembleAuthor = strings[3];
-                    parameters = "username=" + username + "&action=" + action + "&ensemblename=" + ensembleName + "&ensembleauthor=" + ensembleAuthor;
-                    break;
-            }
-
-//            //Log.e(TAG, "parameters.length: " + parameters.length());
-//            if(parameters.length()>65500){
-//                response = "PostTooLong";
-//                return null;
-//            }
-
-            HttpURLConnection connection;
-            OutputStreamWriter request;
-            URL url; // init to null
-
-            try {
-                url = new URL("https://new.gis.dp.ua/share_afrostudio.php");
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setDoOutput(true);
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestMethod("POST");
-                request = new OutputStreamWriter(connection.getOutputStream());
-                request.write(parameters);
-                request.flush();
-                request.close();
-
-                String line = "";
-                InputStreamReader isr = new InputStreamReader(connection.getInputStream());
-                BufferedReader reader = new BufferedReader(isr);
-                StringBuilder sb = new StringBuilder();
-                while ((line = reader.readLine()) != null)
-                    sb.append(line).append("\n");
-                response = sb.toString(); // Response from server after login process will be stored in response variable.
-                isr.close();
-                reader.close();
-
-            } catch (IOException e) {
-                Log.e(TAG, "Error generating url " + e);
-            }
-            return null;
-        }
-
-        @Override // Runs on UI
-        protected void onPostExecute(Void param) { //Runs on UI
-
-            if (response != null){
-                if (response.contains("PostTooLong")) {
-                    Toast.makeText(MainActivity.this, "Too long to share!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-
-            switch (action) {
-                case "register":
-                    break;
-                case "setEnsemble":
-                    if (response != null)
-                        Toast.makeText(MainActivity.this, R.string.toast_share_ok, Toast.LENGTH_SHORT).show();
-                    else
-                        Toast.makeText(MainActivity.this, R.string.toast_share_error, Toast.LENGTH_SHORT).show();
-                    break;
-                case "getEnsemble":
-                    if (response != null) { //if got a response (i.e. wifi connection)
-                        ensemble.setVectorsFromJSON(response);
-                        EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                    } else {
-                        Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                case "getEnsembleList":
-                    if (response != null) { //if got a response (i.e. wifi connection)
-                        List<String> newRemoteFileListString = new ArrayList<String>();
-                        try {
-                            String[] splitArray = response.split("[+]");
-                            for (int i = 0; i < splitArray.length - 1; i++)
-                                newRemoteFileListString.add(splitArray[i]);
-                        } catch (PatternSyntaxException ex) {
-                            Log.e(TAG, "PatternSyntaxException in getEnsembleList " + ex);
-                        }
-                        dialogFragmentLoad.updateRemoteFileListString(newRemoteFileListString);
-                    } else {
-                        Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                case "deleteEnsemble":
-                    if (response != null) { //if got a response (i.e. wifi connection)
-                        List<String> newRemoteFileListString = new ArrayList<String>();
-                        try {
-                            String[] splitArray = response.split("[+]");
-                            for (int i = 0; i < splitArray.length - 1; i++)
-                                newRemoteFileListString.add(splitArray[i]);
-                        } catch (PatternSyntaxException ex) {
-                            Log.e(TAG, "PatternSyntaxException in getEnsembleList " + ex);
-                        }
-                        dialogFragmentLoad.updateRemoteFileListString(newRemoteFileListString);
-                    } else {
-                        Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-            }
-        }
-    }
 
     private FragmentMainBinding getFragmentBinding() {
         MainActivityFragment fragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
@@ -247,8 +101,12 @@ public class MainActivity extends AppCompatActivity
 
         // Initialize ViewModel
         playbackViewModel = new ViewModelProvider(this).get(PlaybackViewModel.class);
+        serverViewModel = new ViewModelProvider(this).get(ServerViewModel.class);
 
         // Set up observers
+        serverViewModel.getServerResponse().observe(this, response -> {
+            handleServerResponse(response);
+        });
         playbackViewModel.isPlaying().observe(this, isPlaying -> {
             FragmentMainBinding fragmentBinding = getFragmentBinding();
             if (fragmentBinding != null) {
@@ -351,8 +209,14 @@ public class MainActivity extends AppCompatActivity
         EnsembleUtils.correctFileNames(MainActivity.this, settings.getString("user", "undefined@undefined"));
 
         // Register User
-        ConnectServerTask connectServerTask = new ConnectServerTask();
-        connectServerTask.execute(settings.getString("user", "undefined@undefined"), "register");
+        serverViewModel.connectToServer(
+                settings.getString("user", "undefined@undefined"),
+                "register",
+                null,
+                null,
+                null,
+                null
+        );
 
         // Low Buttons init
         ImageView but_zoomIn = fragmentBinding.butZoomIn; // Init Buttons
@@ -565,12 +429,57 @@ public class MainActivity extends AppCompatActivity
         EnsembleUtils.saveEnsemble(ensemble, MainActivity.this, false, false, viewAnimator, settings.getString("user", "undefined@undefined"));
     }
 
+    private void handleServerResponse(ServerViewModel.ServerResponse response) {
+        String action = response.getAction();
+        String responseData = response.getResponseData();
+
+        if (responseData != null && responseData.contains("PostTooLong")) {
+            Toast.makeText(MainActivity.this, "Too long to share!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        switch (action) {
+            case "register":
+                // Nothing to do for registration
+                break;
+            case "setEnsemble":
+                if (response.isSuccess()) {
+                    Toast.makeText(MainActivity.this, R.string.toast_share_ok, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.toast_share_error, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case "getEnsemble":
+                if (response.isSuccess()) {
+                    ensemble.setVectorsFromJSON(responseData);
+                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case "getEnsembleList":
+            case "deleteEnsemble":
+                if (response.isSuccess()) {
+                    dialogFragmentLoad.updateRemoteFileListString(response.getEnsembleList());
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
+    }
+
     // https://www.mobomo.com/2011/06/android-understanding-activity-launchmode/
 
     @Override
     protected void onResume() { // Called when the activity will start interacting with the user.
-        ConnectServerTask connectServerTask = new ConnectServerTask();
-        connectServerTask.execute(settings.getString("user", "undefined@undefined"), "register");
+        serverViewModel.connectToServer(
+                settings.getString("user", "undefined@undefined"),
+                "register",
+                null,
+                null,
+                null,
+                null
+        );
 
         File file = new File(getCacheDir(), this.hashCode() + ".tmp");
         if (file.exists()) { // there is a tem file for this hash id?, load it!
@@ -680,8 +589,14 @@ public class MainActivity extends AppCompatActivity
             }
 
             // Get Server File list
-            ConnectServerTask connectServerTask = new ConnectServerTask();
-            connectServerTask.execute(settings.getString("user", "undefined@undefined"), "getEnsembleList", ensemble.ensembleName, ensemble.ensembleAuthor, ensemble.saveVectorsInJSON());
+            serverViewModel.connectToServer(
+                    settings.getString("user", "undefined@undefined"),
+                    "getEnsembleList",
+                    ensemble.ensembleName,
+                    ensemble.ensembleAuthor,
+                    ensemble.saveVectorsInJSON(),
+                    null
+            );
 
             dialogFragmentLoad = new DialogFragmentLoad();
             dialogFragmentLoad.localUser = settings.getString("user", "undefined@undefined");
@@ -714,8 +629,14 @@ public class MainActivity extends AppCompatActivity
                 but_play.callOnClick();
             }
 
-            ConnectServerTask connectServerTask = new ConnectServerTask();
-            connectServerTask.execute(settings.getString("user", "undefined@undefined"), "setEnsemble", ensemble.ensembleName, ensemble.ensembleAuthor, ensemble.saveVectorsInJSON());
+            serverViewModel.connectToServer(
+                    settings.getString("user", "undefined@undefined"),
+                    "setEnsemble",
+                    ensemble.ensembleName,
+                    ensemble.ensembleAuthor,
+                    ensemble.saveVectorsInJSON(),
+                    null
+            );
             return true;
         }
 
@@ -954,8 +875,15 @@ public class MainActivity extends AppCompatActivity
                 String ensembleAuthor = fileName.substring(fileName.indexOf("_by_") + 4, fileName.indexOf("_u_"));
                 String ensembleUser = fileName.substring(fileName.indexOf("_u_") + 3, fileName.length());
 
-                ConnectServerTask connectServerTask = new ConnectServerTask();
-                connectServerTask.execute(settings.getString("user", "undefined@undefined"), "getEnsemble", ensembleName, ensembleAuthor, ensembleUser);
+                serverViewModel.connectToServer(
+                        settings.getString("user", "undefined@undefined"),
+                        "getEnsemble",
+                        ensembleName,
+                        ensembleAuthor,
+                        null,
+                        ensembleUser
+
+                );
                 // wait for ensemble to load?
             }
         } else {
@@ -968,8 +896,14 @@ public class MainActivity extends AppCompatActivity
         String author = fileName.substring(fileName.indexOf("_by_") + 4, fileName.indexOf("_u_"));
 
         // Delete (returns and updates the list in dialog once completed
-        ConnectServerTask connectServerTask = new ConnectServerTask();
-        connectServerTask.execute(settings.getString("user", "undefined@undefined"), "deleteEnsemble", name, author);
+        serverViewModel.connectToServer(
+                settings.getString("user", "undefined@undefined"),
+                "deleteEnsemble",
+                ensemble.ensembleName,
+                ensemble.ensembleAuthor,
+                null,
+                null
+        );
     }
 
     public void equalizerPositiveClick() {
