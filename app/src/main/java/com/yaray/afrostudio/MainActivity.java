@@ -100,8 +100,10 @@ public class MainActivity extends AppCompatActivity
         setContentView(binding.getRoot());
 
         // Initialize ViewModel
+        ServerRepositoryImpl serverRepository = new ServerRepositoryImpl();
+        ServerViewModelFactory factory = new ServerViewModelFactory(serverRepository);
         playbackViewModel = new ViewModelProvider(this).get(PlaybackViewModel.class);
-        serverViewModel = new ViewModelProvider(this).get(ServerViewModel.class);
+        serverViewModel = new ViewModelProvider(this, factory).get(ServerViewModel.class);
 
         // Set up observers
         serverViewModel.getServerResponse().observe(this, response -> {

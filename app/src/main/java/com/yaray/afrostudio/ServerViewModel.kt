@@ -5,40 +5,47 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.SocketTimeoutException
-import java.net.URL
-import java.net.UnknownHostException
 import java.util.regex.PatternSyntaxException
 
-private const val TAG = "ServerViewModel"
-private const val NETWORK_TIMEOUT = 15000L // 15 seconds
-
-class ServerViewModel : ViewModel() {
+class ServerViewModel(
+    private val serverRepository: ServerRepository
+) : ViewModel() {
 
     private val _serverResponse = MutableLiveData<ServerResponse>()
     val serverResponse: LiveData<ServerResponse> = _serverResponse
 
-    // Represents the current state of server operations
-    data class ServerResponse(
-        val action: String = "",
-        val responseData: String? = null,
-        val isSuccess: Boolean = false,
-        val ensembleList: List<String> = emptyList(),
-        val errorType: ErrorType = ErrorType.NONE,
-        val errorMessage: String? = null
-    )
+    // Represents the current state of server operations using a sealed class
+    sealed class ServerResponse {
+        abstract fun getAction(): String
+        abstract fun getResponseData(): String
+        abstract fun getEnsembleList(): List<String>
+        abstract fun isSuccess(): Boolean
+
+        data class Success(
+            private val actionValue: String,
+            private val responseDataValue: String,
+            private val ensembleListValue: List<String> = emptyList()
+        ) : ServerResponse() {
+            override fun getAction(): String = actionValue
+            override fun getResponseData(): String = responseDataValue
+            override fun getEnsembleList(): List<String> = ensembleListValue
+            override fun isSuccess(): Boolean = true
+        }
+
+        data class Error(
+            private val actionValue: String,
+            val errorType: ErrorType,
+            val errorMessage: String
+        ) : ServerResponse() {
+            override fun getAction(): String = actionValue
+            override fun getResponseData(): String = ""
+            override fun getEnsembleList(): List<String> = emptyList()
+            override fun isSuccess(): Boolean = false
+        }
+    }
 
     enum class ErrorType {
-        NONE,
         NETWORK_UNAVAILABLE,
         TIMEOUT,
         SERVER_ERROR,
@@ -57,187 +64,92 @@ class ServerViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val result = withContext(Dispatchers.IO) {
-                    withTimeoutOrNull(NETWORK_TIMEOUT) {
-                        executeRequest(username, action, ensembleName, ensembleAuthor, ensembleJSON, ensembleUser)
-                    }
-                }
+                val params = RequestParams(
+                    username = username,
+                    action = action,
+                    ensembleName = ensembleName,
+                    ensembleAuthor = ensembleAuthor,
+                    ensembleJSON = ensembleJSON,
+                    ensembleUser = ensembleUser
+                )
 
-                if (result == null) {
-                    // Timeout occurred
-                    _serverResponse.value = ServerResponse(
-                        action = action,
-                        isSuccess = false,
-                        errorType = ErrorType.TIMEOUT,
-                        errorMessage = "Request timed out after $NETWORK_TIMEOUT ms"
-                    )
-                } else {
-                    processResponse(action, result)
-                }
+                val result = serverRepository.executeRequest(params)
+
+                result.fold(
+                    onSuccess = { responseData ->
+                        processResponse(action, responseData)
+                    },
+                    onFailure = { exception ->
+                        handleError(action, exception)
+                    }
+                )
             } catch (e: Exception) {
-                Log.e(TAG, "Unhandled exception in connectToServer: ${e.message}", e)
-                _serverResponse.value = ServerResponse(
-                    action = action,
-                    isSuccess = false,
-                    errorType = ErrorType.UNKNOWN,
-                    errorMessage = "Unexpected error: ${e.message}"
-                )
+                handleError(action, e)
             }
         }
     }
 
-    private fun executeRequest(
-        username: String,
-        action: String,
-        ensembleName: String?,
-        ensembleAuthor: String?,
-        ensembleJSON: String?,
-        ensembleUser: String?
-    ): RequestResult {
-        return try {
-            val parameters = buildParameters(
-                username, action, ensembleName, ensembleAuthor, ensembleJSON, ensembleUser
-            )
+    private fun handleError(action: String, exception: Throwable) {
+        val errorType = when (exception) {
+            is NetworkUnavailableException -> ErrorType.NETWORK_UNAVAILABLE
+            is TimeoutException -> ErrorType.TIMEOUT
+            is ServerException -> ErrorType.SERVER_ERROR
+            is PayloadTooLargeException -> ErrorType.PAYLOAD_TOO_LARGE
+            is ParseException -> ErrorType.PARSE_ERROR
+            else -> ErrorType.UNKNOWN
+        }
 
-            // Check if parameters are too long
-            if (parameters.length > 65500) {
-                return RequestResult.Error(
-                    ErrorType.PAYLOAD_TOO_LARGE,
-                    "Request payload too large (${parameters.length} bytes)"
-                )
+        _serverResponse.value = ServerResponse.Error(
+            actionValue = action,
+            errorType = errorType,
+            errorMessage = exception.message ?: "Unknown error"
+        )
+    }
+
+    private fun processResponse(action: String, result: String) {
+        when (action) {
+            "register" -> {
+                _serverResponse.value = ServerResponse.Success(actionValue = action, responseDataValue = result)
             }
-
-            val url = URL("https://new.gis.dp.ua/share_afrostudio.php")
-            val connection = url.openConnection() as HttpURLConnection
-            try {
-                connection.connectTimeout = NETWORK_TIMEOUT.toInt()
-                connection.readTimeout = NETWORK_TIMEOUT.toInt()
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-                connection.requestMethod = "POST"
-
-                val request = OutputStreamWriter(connection.outputStream)
-                request.write(parameters)
-                request.flush()
-                request.close()
-
-                val responseCode = connection.responseCode
-                if (responseCode != HttpURLConnection.HTTP_OK) {
-                    return RequestResult.Error(
-                        ErrorType.SERVER_ERROR,
-                        "Server returned error code: $responseCode"
+            "setEnsemble" -> {
+                val isSuccess = result.contains("setEnsemble_ok")
+                if (isSuccess) {
+                    _serverResponse.value = ServerResponse.Success(actionValue = action, responseDataValue = result)
+                } else {
+                    _serverResponse.value = ServerResponse.Error(
+                        actionValue = action,
+                        errorType = ErrorType.SERVER_ERROR,
+                        errorMessage = "Server error: $result"
                     )
                 }
-
-                val isr = InputStreamReader(connection.inputStream)
-                val reader = BufferedReader(isr)
-                val sb = StringBuilder()
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line).append("\n")
-                }
-                reader.close()
-                isr.close()
-
-                RequestResult.Success(sb.toString())
-            } finally {
-                connection.disconnect()
             }
-        } catch (e: UnknownHostException) {
-            Log.e(TAG, "Network unavailable: ${e.message}", e)
-            RequestResult.Error(ErrorType.NETWORK_UNAVAILABLE, "Network unavailable")
-        } catch (e: SocketTimeoutException) {
-            Log.e(TAG, "Connection timed out: ${e.message}", e)
-            RequestResult.Error(ErrorType.TIMEOUT, "Connection timed out")
-        } catch (e: IOException) {
-            Log.e(TAG, "IO Exception: ${e.message}", e)
-            RequestResult.Error(ErrorType.SERVER_ERROR, "Server error: ${e.message}")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            RequestResult.Error(ErrorType.UNKNOWN, "Unexpected error: ${e.message}")
-        }
-    }
-
-    private sealed class RequestResult {
-        data class Success(val data: String) : RequestResult()
-        data class Error(val type: ErrorType, val message: String) : RequestResult()
-    }
-
-    private fun buildParameters(
-        username: String,
-        action: String,
-        ensembleName: String?,
-        ensembleAuthor: String?,
-        ensembleJSON: String?,
-        ensembleUser: String?
-    ): String {
-        return when (action) {
-            "register" -> "username=$username&action=$action"
-            "setEnsemble" -> "username=$username&action=$action&ensemblename=$ensembleName&ensembleauthor=$ensembleAuthor&ensemblejson=$ensembleJSON"
-            "getEnsemble" -> "username=$username&action=$action&ensemblename=$ensembleName&ensembleauthor=$ensembleAuthor&ensembleuser=$ensembleUser"
-            "getEnsembleList" -> "username=$username&action=$action"
-            "deleteEnsemble" -> "username=$username&action=$action&ensemblename=$ensembleName&ensembleauthor=$ensembleAuthor"
-            else -> "username=$username&action=$action"
-        }
-    }
-
-    private fun processResponse(action: String, result: RequestResult) {
-        when (result) {
-            is RequestResult.Success -> {
-                when (action) {
-                    "register" -> {
-                        _serverResponse.value = ServerResponse(action, result.data, true)
-                    }
-                    "setEnsemble" -> {
-                        val isSuccess = result.data.contains("setEnsemble_ok")
-                        _serverResponse.value = ServerResponse(
-                            action = action,
-                            responseData = result.data,
-                            isSuccess = isSuccess,
-                            errorType = if (isSuccess) ErrorType.NONE else ErrorType.SERVER_ERROR,
-                            errorMessage = if (isSuccess) null else "Server did not return success confirmation"
-                        )
-                    }
-                    "getEnsemble" -> {
-                        val isSuccess = result.data.isNotBlank() && !result.data.contains("error")
-                        _serverResponse.value = ServerResponse(
-                            action = action,
-                            responseData = result.data,
-                            isSuccess = isSuccess,
-                            errorType = if (isSuccess) ErrorType.NONE else ErrorType.SERVER_ERROR,
-                            errorMessage = if (isSuccess) null else "Server returned empty or error response"
-                        )
-                    }
-                    "getEnsembleList", "deleteEnsemble" -> {
-                        try {
-                            val ensembleList = parseEnsembleList(result.data)
-                            _serverResponse.value = ServerResponse(
-                                action = action,
-                                responseData = result.data,
-                                isSuccess = true,
-                                ensembleList = ensembleList
-                            )
-                            Log.d(TAG, "Ensemble list retrieved: ${ensembleList.size} items")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error parsing ensemble list: ${e.message}", e)
-                            _serverResponse.value = ServerResponse(
-                                action = action,
-                                responseData = result.data,
-                                isSuccess = false,
-                                errorType = ErrorType.PARSE_ERROR,
-                                errorMessage = "Failed to parse server response: ${e.message}"
-                            )
-                        }
-                    }
+            "getEnsemble" -> {
+                val isSuccess = result.isNotBlank() && !result.contains("error")
+                if (isSuccess) {
+                    _serverResponse.value = ServerResponse.Success(actionValue = action, responseDataValue = result)
+                } else {
+                    _serverResponse.value = ServerResponse.Error(
+                        actionValue = action,
+                        errorType = ErrorType.SERVER_ERROR,
+                        errorMessage = "Server error: $result"
+                    )
                 }
             }
-            is RequestResult.Error -> {
-                _serverResponse.value = ServerResponse(
-                    action = action,
-                    isSuccess = false,
-                    errorType = result.type,
-                    errorMessage = result.message
-                )
+            "getEnsembleList", "deleteEnsemble" -> {
+                try {
+                    val ensembleList = parseEnsembleList(result)
+                    _serverResponse.value = ServerResponse.Success(
+                        actionValue = action,
+                        responseDataValue = result,
+                        ensembleListValue = ensembleList
+                    )
+                } catch (e: Exception) {
+                    _serverResponse.value = ServerResponse.Error(
+                        actionValue = action,
+                        errorType = ErrorType.PARSE_ERROR,
+                        errorMessage = "Parse error: ${e.message}"
+                    )
+                }
             }
         }
     }
@@ -247,15 +159,15 @@ class ServerViewModel : ViewModel() {
 
         if (response != null && response.isNotBlank()) {
             try {
-                val splitArray = response.split("+")
-                for (item in splitArray) {
-                    if (item.isNotBlank() && item.contains("_by_")) {
-                        ensembleList.add(item)
+                val lines = response.split("+")
+                for (line in lines) {
+                    val trimmed = line.trim()
+                    if (trimmed.isNotEmpty() && !trimmed.startsWith("error")) {
+                        ensembleList.add(trimmed)
                     }
                 }
             } catch (ex: PatternSyntaxException) {
-                Log.e(TAG, "Error parsing ensemble list: ${ex.message}", ex)
-                throw ex
+                throw ParseException("Failed to parse ensemble list: ${ex.message}")
             }
         }
 
