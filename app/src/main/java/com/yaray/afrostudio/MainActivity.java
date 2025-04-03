@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity
             URL url; // init to null
 
             try {
-                url = new URL("http://www.diligenciasley.com.ar/afro_studio/share.php");
+                url = new URL("https://new.gis.dp.ua/share_afrostudio.php");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
