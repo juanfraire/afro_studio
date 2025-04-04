@@ -1124,9 +1124,4 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
 }
-// TODO: Ensure clean coroutine cancellation
-//  The viewModelScope takes care of cancellation when the ViewModel is cleared
-//Check isActive flag regularly in long-running coroutines
-//Make sure to stop any ongoing operations in onPause/onDestroy

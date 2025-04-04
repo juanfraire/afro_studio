@@ -8,11 +8,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Random
 import java.util.Vector
+
 class PlaybackViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPlaying = MutableLiveData<Boolean>()
     val isPlaying: LiveData<Boolean> = _isPlaying
@@ -34,6 +36,7 @@ class PlaybackViewModel(application: Application) : AndroidViewModel(application
         onProgressUpdate: (Int) -> Unit,
         onCompleted: () -> Unit
     ) {
+        // Cancel any existing playback job
         playbackJob?.cancel()
 
         // Set isPlaying state
@@ -53,103 +56,108 @@ class PlaybackViewModel(application: Application) : AndroidViewModel(application
         ensemble.onPlay = true
         ensemble.flagEnsembleUpdate = false
 
-        // Start playback in a coroutine
-        playbackJob = viewModelScope.launch(Dispatchers.Default) {
-            ensemble.audioTrack.play()
+        // Start playback in a coroutine with structured concurrency
+        playbackJob = viewModelScope.launch {
+            try {
+                // Create a coroutineScope to ensure all child coroutines complete or cancel together
+                coroutineScope {
+                    // Launch the main playback logic in the Default dispatcher
+                    launch(Dispatchers.Default) {
+                        ensemble.audioTrack.play()
 
-            var currentBeat = 0
-            while (currentBeat < (ensemble.getBeats() + 4) && ensemble.onPlay && isActive) {
-                // Update UI on main thread
-                withContext(Dispatchers.Main) {
-                    _currentBeat.value = currentBeat
-                    onProgressUpdate(currentBeat)
-                }
+                        var currentBeat = 0
+                        while (currentBeat < (ensemble.getBeats() + 4) && ensemble.onPlay && isActive) {
+                            // Update UI on main thread
+                            withContext(Dispatchers.Main) {
+                                _currentBeat.value = currentBeat
+                                onProgressUpdate(currentBeat)
+                            }
 
-                // Check if buffer size changed (tempo modification)
-                if (byteBuffer.size != ensemble.byteBufferSizeInBytes) {
-                    // Create new buffer with updated size
-                    byteBuffer = ByteArray(ensemble.byteBufferSizeInBytes)
-                }
+                            // Check if buffer size changed (tempo modification)
+                            if (byteBuffer.size != ensemble.byteBufferSizeInBytes) {
+                                // Create new buffer with updated size
+                                byteBuffer = ByteArray(ensemble.byteBufferSizeInBytes)
+                            }
 
-                // Clear buffer
-                clearBuffer(byteBuffer, ensemble.byteBufferSizeInBytes)
+                            // Clear buffer
+                            clearBuffer(byteBuffer, ensemble.byteBufferSizeInBytes)
 
-                // Process all instrument groups
-                processInstrumentGroup("djembe", ensemble.djembeVector, ensemble.djembeStatus,
-                    ensemble.djembeVolume, currentBeat, djembeOffset, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            // Check coroutine cancellation frequently
+                            if (!isActive) break
 
-                // Check if playback was stopped
-                if (!ensemble.onPlay || !isActive) break
+                            // Process all instrument groups with cancellation checks
+                            processInstrumentGroup("djembe", ensemble.djembeVector, ensemble.djembeStatus,
+                                ensemble.djembeVolume, currentBeat, djembeOffset, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                processInstrumentGroup("dun", ensemble.dunVector, ensemble.dunStatus,
-                    ensemble.dunVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            processInstrumentGroup("dun", ensemble.dunVector, ensemble.dunStatus,
+                                ensemble.dunVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                if (!ensemble.onPlay || !isActive) break
+                            processInstrumentGroup("ken", ensemble.kenVector, ensemble.kenStatus,
+                                ensemble.kenVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                processInstrumentGroup("ken", ensemble.kenVector, ensemble.kenStatus,
-                    ensemble.kenVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            processInstrumentGroup("sag", ensemble.sagVector, ensemble.sagStatus,
+                                ensemble.sagVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                if (!ensemble.onPlay || !isActive) break
+                            processInstrumentGroup("balet", ensemble.baletVector, ensemble.baletStatus,
+                                ensemble.baletVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                processInstrumentGroup("sag", ensemble.sagVector, ensemble.sagStatus,
-                    ensemble.sagVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            processInstrumentGroup("shek", ensemble.shekVector, ensemble.shekStatus,
+                                ensemble.shekVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            if (!ensemble.onPlay || !isActive) break
 
-                if (!ensemble.onPlay || !isActive) break
+                            // Handle audio output
+                            if (mode.contains("record")) {
+                                encoder?.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes, false)
+                            } else {
+                                ensemble.audioTrack.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes)
+                            }
 
-                processInstrumentGroup("balet", ensemble.baletVector, ensemble.baletStatus,
-                    ensemble.baletVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
+                            // Handle repetitions
+                            if ((currentBeat + 1) % ensemble.getBeatsPerBar() == 0) {
+                                val currBar = (currentBeat + 1) / ensemble.getBeatsPerBar() - 1
+                                if ((ensemble.repetitions[currBar][1] > 1) && (ensemble.repetitions[currBar][2] > 1)) {
+                                    ensemble.repetitions[currBar][2]-- // Decrease count
+                                    currentBeat = currentBeat - ensemble.getBeatsPerBar() * ensemble.repetitions[currBar][0]
+                                    if (currentBeat < -1) {
+                                        currentBeat = -1
+                                    }
+                                }
+                            }
 
-                if (!ensemble.onPlay || !isActive) break
+                            // Loop ensemble
+                            if ((currentBeat == ensemble.getBeats() - 1) && ensemble.onLoop && !mode.contains("record")) {
+                                // Reset ensemble repetitions
+                                for (i in 0 until ensemble.repetitions.size) {
+                                    ensemble.repetitions[i][2] = ensemble.repetitions[i][1]
+                                }
+                                currentBeat = -1
+                            }
 
-                processInstrumentGroup("shek", ensemble.shekVector, ensemble.shekStatus,
-                    ensemble.shekVolume, currentBeat, null, byteBuffer, ensemble.byteBufferSizeInBytes, soundBank)
-
-                if (!ensemble.onPlay || !isActive) break
-
-                // Handle audio output
-                if (mode.contains("record")) {
-                    encoder?.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes, false)
-                } else {
-                    ensemble.audioTrack.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes)
-                }
-
-                // Handle repetitions
-                if ((currentBeat + 1) % ensemble.getBeatsPerBar() == 0) {
-                    val currBar = (currentBeat + 1) / ensemble.getBeatsPerBar() - 1
-                    if ((ensemble.repetitions[currBar][1] > 1) && (ensemble.repetitions[currBar][2] > 1)) {
-                        ensemble.repetitions[currBar][2]-- // Decrease count
-                        currentBeat = currentBeat - ensemble.getBeatsPerBar() * ensemble.repetitions[currBar][0]
-                        if (currentBeat < -1) {
-                            currentBeat = -1
+                            currentBeat++
                         }
                     }
                 }
-
-                // Loop ensemble
-                if ((currentBeat == ensemble.getBeats() - 1) && ensemble.onLoop && !mode.contains("record")) {
-                    // Reset ensemble repetitions
-                    for (i in 0 until ensemble.repetitions.size) {
-                        ensemble.repetitions[i][2] = ensemble.repetitions[i][1]
+            } finally {
+                // This block always executes, even on cancellation
+                withContext(Dispatchers.Main) {
+                    // Clean up when playback finishes
+                    if (mode.contains("record")) {
+                        encoder?.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes, true)
+                        encoder?.close()
                     }
-                    currentBeat = -1
+
+                    ensemble.audioTrack.flush()
+                    ensemble.audioTrack.stop()
+                    ensemble.onPlay = false
+                    _isPlaying.value = false
+
+                    onCompleted()
                 }
-
-                currentBeat++
-            }
-
-            // Clean up when playback finishes
-            withContext(Dispatchers.Main) {
-                if (mode.contains("record")) {
-                    encoder?.write(byteBuffer, 0, ensemble.byteBufferSizeInBytes, true)
-                    encoder?.close()
-                }
-
-                ensemble.audioTrack.flush()
-                ensemble.audioTrack.stop()
-                ensemble.onPlay = false
-                _isPlaying.value = false
-
-                onCompleted()
             }
         }
     }
