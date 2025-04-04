@@ -27,21 +27,6 @@ and technologies.
     - Convert `PlayRithmTask` and `ConnectServerTask` to use coroutines
     - Implement proper scopes (viewModelScope, lifecycleScope)
     - Add proper cancellation handling when activity/fragment is destroyed
-1.a. Add more tests for server connections, including these improvements:
-    - Switch all tests to use JUnit5 if reasonable
-   
-    - Extract common test utilities:  
-      Create a shared test fixture for common test data
-      Use a TestRule to manage dispatcher setup/teardown
-
-- Add coverage for network handling:  
-Test reconnection logic if applicable
-Test behavior with slow/intermittent connections
-
-- Improve mocking approach:  
-Use a more sophisticated mocking strategy for HttpURLConnection
-Consider a fake server implementation for more realistic tests
-
 
 2. **Implement ViewModel**
     - Create `EnsembleViewModel` to hold ensemble state and operations

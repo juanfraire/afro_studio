@@ -1,30 +1,29 @@
 package com.yaray.afrostudio
-
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+// uses JUnit 5
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
 @ExperimentalCoroutinesApi
 class ServerIntegrationTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
+    // Using JUnit 5 extension instead of Rule
+    @ExtendWith(InstantTaskExecutorExtension::class)
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var viewModelFactory: ServerViewModelFactory
     private lateinit var mockRepository: MockServerRepository
     private lateinit var viewModel: ServerViewModel
 
-    @Before
+    @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         mockRepository = MockServerRepository()
@@ -32,7 +31,7 @@ class ServerIntegrationTest {
         viewModel = viewModelFactory.create(ServerViewModel::class.java)
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
     }

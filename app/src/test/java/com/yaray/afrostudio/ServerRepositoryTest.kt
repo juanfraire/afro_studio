@@ -1,5 +1,5 @@
 package com.yaray.afrostudio
-
+// uses JUnit 5
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher

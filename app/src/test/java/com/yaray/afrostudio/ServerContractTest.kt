@@ -1,5 +1,5 @@
 package com.yaray.afrostudio
-
+// uses JUnit 5
 import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.arch.core.executor.TaskExecutor
 import kotlinx.coroutines.Dispatchers
