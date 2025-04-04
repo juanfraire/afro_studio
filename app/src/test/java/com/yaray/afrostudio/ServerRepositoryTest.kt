@@ -4,10 +4,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mockito.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.util.stream.Stream
 
 @ExperimentalCoroutinesApi
 class ServerRepositoryTest {
@@ -15,8 +18,8 @@ class ServerRepositoryTest {
     private lateinit var repository: TestServerRepository
     private val testDispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setup() {
+    @BeforeEach
+    fun setUp() {
         repository = TestServerRepository(testDispatcher)
     }
 
@@ -123,6 +126,76 @@ class ServerRepositoryTest {
         val exception = result.exceptionOrNull()
         assertTrue(exception is PayloadTooLargeException)
     }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidParameters")
+    fun `test invalid parameter combinations`(
+        params: RequestParams,
+        expectedErrorType: Class<out Throwable>
+    ) = runTest {
+        // Given
+        // params is provided by the method source
+
+        // When
+        val result = repository.executeRequest(params)
+
+        // Then
+        assertTrue(result.isFailure)
+        val exception = result.exceptionOrNull()
+        assertTrue(expectedErrorType.isInstance(exception))
+    }
+
+    companion object {
+        @JvmStatic
+        fun provideInvalidParameters(): Stream<Arguments> = Stream.of(
+            Arguments.of(
+                RequestParams(
+                    username = "",
+                    action = "register"
+                ),
+                IllegalArgumentException::class.java
+            ),
+            Arguments.of(
+                RequestParams(
+                    username = "test@example.com",
+                    action = ""
+                ),
+                IllegalArgumentException::class.java
+            ),
+            Arguments.of(
+                RequestParams(
+                    username = "test@example.com",
+                    action = "setEnsemble",
+                    ensembleJSON = "x".repeat(70000)
+                ),
+                PayloadTooLargeException::class.java
+            ),
+            Arguments.of(
+                RequestParams(
+                    username = "test@example.com",
+                    action = "getEnsemble",
+                    ensembleName = null
+                ),
+                IllegalArgumentException::class.java
+            ),
+            Arguments.of(
+                RequestParams(
+                    username = "test@example.com",
+                    action = "deleteEnsemble",
+                    ensembleName = "Test Ensemble",
+                    ensembleAuthor = null
+                ),
+                IllegalArgumentException::class.java
+            ),
+            Arguments.of(
+                RequestParams(
+                    username = "test@example.com",
+                    action = "unknownAction"
+                ),
+                UnsupportedOperationException::class.java
+            )
+        )
+    }
 }
 
 // Test helper class that implements ServerRepository instead of extending ServerRepositoryImpl
@@ -154,6 +227,24 @@ class TestServerRepository(
     }
 
     override suspend fun executeRequest(params: RequestParams): Result<String> {
+        // Validate parameters
+        when {
+            params.username.isBlank() ->
+                return Result.failure(IllegalArgumentException("Username cannot be empty"))
+
+            params.action.isBlank() ->
+                return Result.failure(IllegalArgumentException("Action cannot be empty"))
+
+            params.action == "getEnsemble" && params.ensembleName == null ->
+                return Result.failure(IllegalArgumentException("Ensemble name is required for getEnsemble"))
+
+            params.action == "deleteEnsemble" && params.ensembleAuthor == null ->
+                return Result.failure(IllegalArgumentException("Ensemble author is required for deleteEnsemble"))
+
+            params.action !in listOf("register", "setEnsemble", "getEnsemble", "getEnsembleList", "deleteEnsemble") ->
+                return Result.failure(UnsupportedOperationException("Unsupported action: ${params.action}"))
+        }
+
         // For the payload too large test
         val parameters = publicBuildParameters(params)
         if (parameters.length > 65500) {

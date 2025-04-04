@@ -45,6 +45,7 @@ android {
     }
 }
 
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core-ktx:1.12.0'
@@ -67,11 +68,20 @@ dependencies {
 
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     testImplementation 'androidx.test:core:1.5.0'
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.8.2") // Bridge for JUnit 4 tests
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'org.robolectric:robolectric:4.11.1'
 
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
 }
