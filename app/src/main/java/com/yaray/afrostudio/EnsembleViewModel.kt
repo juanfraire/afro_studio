@@ -17,6 +17,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.Vector
+import kotlin.text.get
 
 class EnsembleViewModel(application: Application) : AndroidViewModel(application) {
     private val appContext = application.applicationContext
@@ -39,10 +40,9 @@ class EnsembleViewModel(application: Application) : AndroidViewModel(application
         _ensemble.value = Ensemble(appContext)
     }
 
-    fun getEnsemble(): Ensemble? {
+    fun getEnsembleValue(): Ensemble? {
         return _ensemble.value
     }
-
     fun createNewEnsemble(beatsPerBar: Int, numBar: Int, emptyInstruments: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             _ensemble.value?.setVectorsFromEmpty(beatsPerBar, numBar, emptyInstruments, appContext)
@@ -170,16 +170,175 @@ class EnsembleViewModel(application: Application) : AndroidViewModel(application
     fun removeBar(barPos: Int) {
         val ensemble = _ensemble.value ?: return
 
-        // Remove the bar data
+        // Store beats per bar for calculations
         val beatsPerBar = ensemble.getBeatsPerBar()
+        val startBeat = barPos * beatsPerBar
+        val endBeat = (barPos + 1) * beatsPerBar
+
+        // Remove the bar data from all instrument vectors by setting elements to 0
+        for (i in 0 until ensemble.djembeVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.djembeVector[i].setElementAt(0, j)
+            }
+        }
+
+        for (i in 0 until ensemble.shekVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.shekVector[i].setElementAt(0, j)
+            }
+        }
+
+        for (i in 0 until ensemble.dunVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.dunVector[i].setElementAt(0, j)
+            }
+        }
+
+        for (i in 0 until ensemble.sagVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.sagVector[i].setElementAt(0, j)
+            }
+        }
+
+        for (i in 0 until ensemble.kenVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.kenVector[i].setElementAt(0, j)
+            }
+        }
+
+        for (i in 0 until ensemble.baletVector.size) {
+            for (j in startBeat until endBeat) {
+                ensemble.baletVector[i].setElementAt(0, j)
+            }
+        }
 
         // Remove repetitions for this bar
-        ensemble.repetitions.removeAt(barPos)
+        ensemble.repetitions.removeElementAt(barPos)
+
+        // Remove bar name
+        if (barPos < ensemble.barName.size) {
+            ensemble.barName.removeElementAt(barPos)
+        }
 
         if (ensemble.onPlay)
             ensemble.flagEnsembleUpdate = true
         else
             _uiEvent.value = UiEvent.BarRemoved(barPos)
+    }
+
+    fun cloneBar(barPos: Int) {
+        val ensemble = _ensemble.value ?: return
+        val beatsPerBar = ensemble.getBeatsPerBar()
+
+        // Calculate positions
+        val startBeat = barPos * beatsPerBar
+        val endBeat = (barPos + 1) * beatsPerBar
+
+        // We'll need to create temp vectors to hold our values before inserting
+        val djembeClones = Array(ensemble.djembeVector.size) { ArrayList<Int>() }
+        val shekClones = Array(ensemble.shekVector.size) { ArrayList<Int>() }
+        val dunClones = Array(ensemble.dunVector.size) { ArrayList<Int>() }
+        val sagClones = Array(ensemble.sagVector.size) { ArrayList<Int>() }
+        val kenClones = Array(ensemble.kenVector.size) { ArrayList<Int>() }
+        val baletClones = Array(ensemble.baletVector.size) { ArrayList<Int>() }
+
+        // Copy values to clone
+        for (i in 0 until ensemble.djembeVector.size) {
+            for (j in startBeat until endBeat) {
+                djembeClones[i].add(ensemble.djembeVector[i][j])
+            }
+        }
+
+        for (i in 0 until ensemble.shekVector.size) {
+            for (j in startBeat until endBeat) {
+                shekClones[i].add(ensemble.shekVector[i][j])
+            }
+        }
+
+        for (i in 0 until ensemble.dunVector.size) {
+            for (j in startBeat until endBeat) {
+                dunClones[i].add(ensemble.dunVector[i][j])
+            }
+        }
+
+        for (i in 0 until ensemble.sagVector.size) {
+            for (j in startBeat until endBeat) {
+                sagClones[i].add(ensemble.sagVector[i][j])
+            }
+        }
+
+        for (i in 0 until ensemble.kenVector.size) {
+            for (j in startBeat until endBeat) {
+                kenClones[i].add(ensemble.kenVector[i][j])
+            }
+        }
+
+        for (i in 0 until ensemble.baletVector.size) {
+            for (j in startBeat until endBeat) {
+                baletClones[i].add(ensemble.baletVector[i][j])
+            }
+        }
+
+        // Insert cloned values after the original bar
+        for (i in 0 until ensemble.djembeVector.size) {
+            val vector = ensemble.djembeVector[i]
+            for (k in djembeClones[i].indices.reversed()) {
+                vector.insertElementAt(djembeClones[i][k], endBeat)
+            }
+        }
+
+        for (i in 0 until ensemble.shekVector.size) {
+            val vector = ensemble.shekVector[i]
+            for (k in shekClones[i].indices.reversed()) {
+                vector.insertElementAt(shekClones[i][k], endBeat)
+            }
+        }
+
+        for (i in 0 until ensemble.dunVector.size) {
+            val vector = ensemble.dunVector[i]
+            for (k in dunClones[i].indices.reversed()) {
+                vector.insertElementAt(dunClones[i][k], endBeat)
+            }
+        }
+
+        for (i in 0 until ensemble.sagVector.size) {
+            val vector = ensemble.sagVector[i]
+            for (k in sagClones[i].indices.reversed()) {
+                vector.insertElementAt(sagClones[i][k], endBeat)
+            }
+        }
+
+        for (i in 0 until ensemble.kenVector.size) {
+            val vector = ensemble.kenVector[i]
+            for (k in kenClones[i].indices.reversed()) {
+                vector.insertElementAt(kenClones[i][k], endBeat)
+            }
+        }
+
+        for (i in 0 until ensemble.baletVector.size) {
+            val vector = ensemble.baletVector[i]
+            for (k in baletClones[i].indices.reversed()) {
+                vector.insertElementAt(baletClones[i][k], endBeat)
+            }
+        }
+
+        // Clone repetitions
+        if (barPos < ensemble.repetitions.size) {
+            val repetition = ensemble.repetitions[barPos]
+            // Create a new array with the same values using the correct type
+            val newRepetition = arrayOf(repetition[0], repetition[1], repetition[2])
+            ensemble.repetitions.insertElementAt(newRepetition, barPos + 1)
+        }
+
+        // Clone bar name
+        if (barPos < ensemble.barName.size) {
+            ensemble.barName.insertElementAt("${ensemble.barName[barPos]} (copy)", barPos + 1)
+        }
+
+        if (ensemble.onPlay)
+            ensemble.flagEnsembleUpdate = true
+        else
+            _uiEvent.value = UiEvent.EnsembleUpdated
     }
 
     fun setBarName(barPos: Int, name: String) {

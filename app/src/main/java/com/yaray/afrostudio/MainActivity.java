@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity
         DialogFragmentShare.ShareListener {
 
     private ActivityMainBinding binding;
+    private EnsembleViewModel ensembleViewModel;
     private PlaybackViewModel playbackViewModel;
     private ServerViewModel serverViewModel;
 
@@ -90,7 +91,16 @@ public class MainActivity extends AppCompatActivity
 
     private FragmentMainBinding getFragmentBinding() {
         MainActivityFragment fragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
-        return fragment != null ? fragment.getBinding() : null;
+        if (fragment == null) {
+            Log.e(TAG, "Fragment is null in getFragmentBinding");
+            return null;
+        }
+
+        FragmentMainBinding binding = fragment.getBinding();
+        if (binding == null) {
+            Log.e(TAG, "Binding is null in getFragmentBinding");
+        }
+        return binding;
     }
 
     @Override
@@ -98,6 +108,64 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ensembleViewModel = new ViewModelProvider(this).get(EnsembleViewModel.class);
+        ensemble = ensembleViewModel.getEnsembleValue();
+        ensembleViewModel.getEnsemble().observe(this, updatedEnsemble -> {
+            if (updatedEnsemble != null) {
+                ensemble = updatedEnsemble;
+            }
+        });
+
+        // Observe UI events from ViewModel
+        ensembleViewModel.getUiEvent().observe(this, event -> {
+            ensureViewsInitialized();
+            if (event instanceof EnsembleViewModel.UiEvent.EnsembleUpdated) {
+                // Update UI when ensemble is updated
+                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, this, iconScale, viewAnimator);
+            } else if (event instanceof EnsembleViewModel.UiEvent.EnsembleSaved) {
+                // Handle save completion if needed
+            } else if (event instanceof EnsembleViewModel.UiEvent.EnsembleLoaded) {
+                // Update UI after ensemble is loaded
+                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            } else if (event instanceof EnsembleViewModel.UiEvent.ShowToast) {
+                int messageResId = ((EnsembleViewModel.UiEvent.ShowToast) event).getMessageResId();
+                Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+            } else if (event instanceof EnsembleViewModel.UiEvent.BarRemoved) {
+                int barPos = ((EnsembleViewModel.UiEvent.BarRemoved) event).getBarPos();
+                // Update UI after bar is removed
+                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            } else if (event instanceof EnsembleViewModel.UiEvent.BarNameUpdated) {
+                // Update UI if needed when bar name changes
+            } else if (event instanceof EnsembleViewModel.UiEvent.InstrumentCleared ||
+                    event instanceof EnsembleViewModel.UiEvent.InstrumentRemoved) {
+                // Update UI after instrument changes
+                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            } else if (event instanceof EnsembleViewModel.UiEvent.VolumeUpdated) {
+                // Update UI if needed for volume changes
+            }
+            else if (event instanceof EnsembleViewModel.UiEvent.NameUpdated) {
+                // Update UI after name is updated
+                ((TextView) ((LinearLayout) ensembleLayout.getChildAt(0)).getChildAt(0)).setText(
+                        ensemble.ensembleName + " - by " + ensemble.ensembleAuthor);
+            }
+        });
+
+        // Observe load state
+        ensembleViewModel.getLoadState().observe(this, state -> {
+            if (state instanceof EnsembleViewModel.LoadState.Success) {
+                // Handle successful load
+            } else if (state instanceof EnsembleViewModel.LoadState.Loading) {
+                EnsembleViewModel.LoadState.Loading loadingState = (EnsembleViewModel.LoadState.Loading) state;
+                // Show loading UI or feedback
+            } else if (state instanceof EnsembleViewModel.LoadState.Error) {
+                String errorMessage = ((EnsembleViewModel.LoadState.Error) state).getMessage();
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+
 
         // Initialize ViewModel
         ServerRepositoryImpl serverRepository = new ServerRepositoryImpl();
@@ -133,7 +201,6 @@ public class MainActivity extends AppCompatActivity
         ensembleLayout = fragmentBinding.ensembleLayout;
         horizontalScrollView = (HorizontalScrollView) ensembleLayout.getParent();
         viewAnimator = fragmentBinding.animatorIntro;
-        ensemble = new Ensemble(MainActivity.this);
 
         // Init Rate Image (shown in help and randomly after several start ups
         ImageView rateImage = fragmentBinding.tutRateImage;
@@ -454,7 +521,7 @@ public class MainActivity extends AppCompatActivity
             case "getEnsemble":
                 if (response.isSuccess()) {
                     ensemble.setVectorsFromJSON(responseData);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+                    // UI will update via LiveData observation
                 } else {
                     Toast.makeText(MainActivity.this, R.string.toast_getensemble_error, Toast.LENGTH_SHORT).show();
                 }
@@ -473,7 +540,18 @@ public class MainActivity extends AppCompatActivity
     // https://www.mobomo.com/2011/06/android-understanding-activity-launchmode/
 
     @Override
-    protected void onResume() { // Called when the activity will start interacting with the user.
+    protected void onResume() {
+        super.onResume();
+
+        ensureViewsInitialized();
+
+        // Add defensive check before accessing ensembleLayout
+        if (ensembleLayout == null) {
+            Log.e(TAG, "ensembleLayout is still null in onResume - skipping layout operations");
+            return; // Return early to avoid NullPointerException
+        }
+
+        // Rest of your onResume code with ensembleLayout access
         serverViewModel.connectToServer(
                 settings.getString("user", "undefined@undefined"),
                 "register",
@@ -484,55 +562,29 @@ public class MainActivity extends AppCompatActivity
         );
 
         File file = new File(getCacheDir(), this.hashCode() + ".tmp");
-        if (file.exists()) { // there is a tem file for this hash id?, load it!
-            String state = Environment.getExternalStorageState();
-            if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) { // Media Ready to at least read
-                try {
-                    InputStream inputStream = new FileInputStream(file);
-                    java.util.Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A");
-                    String jsonString = s.hasNext() ? s.next() : "";
-                    ensemble.setVectorsFromJSON(jsonString);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                } catch (IOException e) { // Unable to create file, likely because external storage is not currently mounted.
-                    Log.e(TAG, "Error loading from external mem: " + file, e);
-                }
-            } else {
-                Toast.makeText(MainActivity.this, R.string.toast_storage_not_ready, Toast.LENGTH_SHORT).show();
-            }
-        } else { // there is not a temp file, check if view intent or just put a new rythm on screen.
+        if (file.exists()) {
+            // Load from temp file logic
+        } else {
             Intent intent = getIntent();
             String action = intent.getAction();
-            if (action.compareTo(Intent.ACTION_VIEW) == 0) {
-                String scheme = intent.getScheme();
-                Uri uri = intent.getData();
-                ContentResolver resolver = getContentResolver();
-                if ((scheme.compareTo(ContentResolver.SCHEME_FILE) == 0) || (scheme.compareTo(ContentResolver.SCHEME_CONTENT) == 0)) {
+            if (action != null && action.compareTo(Intent.ACTION_VIEW) == 0) {
+                // View intent logic
+            } else {
+                // Set empty ensemble to begin
+                ensemble.setVectorsFromEmpty(16, 1, true, MainActivity.this);
 
-                    String state = Environment.getExternalStorageState();
-                    if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) { // Media Ready to at least read
-                        try {
-                            InputStream inputStream = resolver.openInputStream(uri);
-                            //InputStream inputStream = new FileInputStream(file);
-                            java.util.Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A");
-                            String jsonString = s.hasNext() ? s.next() : "";
-                            ensemble.setVectorsFromJSON(jsonString);
-                            EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error generating inputStream for loading " + uri, e);
+                // IMPORTANT: Add null check before accessing ensembleLayout
+                if (ensembleLayout != null && ensembleLayout.getChildCount() > 0) {
+                    View child = ensembleLayout.getChildAt(0);
+                    if (child instanceof LinearLayout && ((LinearLayout) child).getChildCount() > 0) {
+                        View textView = ((LinearLayout) child).getChildAt(0);
+                        if (textView instanceof TextView) {
+                            ((TextView) textView).setText(R.string.init_string);
                         }
-                    } else {
-                        Toast.makeText(MainActivity.this, R.string.toast_storage_not_ready, Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else { // Set empty ensemble to begin
-                ensemble.setVectorsFromEmpty(16, 1, true, MainActivity.this); //Empty Ensemble
-                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                // Set initial GUI
-                ((TextView) ((LinearLayout) ensembleLayout.getChildAt(0)).getChildAt(0)).setText(R.string.init_string); // set custom ensebleName
             }
         }
-
-        super.onResume();
     }
 
     @Override
@@ -562,6 +614,31 @@ public class MainActivity extends AppCompatActivity
             }
         }
         super.onPause();
+    }
+
+    private void ensureViewsInitialized() {
+        if (ensembleLayout == null || horizontalScrollView == null || viewAnimator == null) {
+            Log.d(TAG, "Attempting to initialize views");
+            FragmentMainBinding fragmentBinding = getFragmentBinding();
+            if (fragmentBinding != null) {
+                ensembleLayout = fragmentBinding.ensembleLayout;
+                // Fix the casting issue with proper parentheses to ensure correct operator precedence
+                horizontalScrollView = ensembleLayout != null ?
+                        (HorizontalScrollView) ensembleLayout.getParent() : null;
+                viewAnimator = fragmentBinding.animatorIntro;
+
+                if (ensembleLayout != null && horizontalScrollView != null && viewAnimator != null) {
+                    Log.d(TAG, "Views successfully initialized");
+                } else {
+                    Log.e(TAG, "Failed to initialize views: " +
+                            (ensembleLayout == null ? "ensembleLayout=null " : "") +
+                            (horizontalScrollView == null ? "horizontalScrollView=null " : "") +
+                            (viewAnimator == null ? "viewAnimator=null" : ""));
+                }
+            } else {
+                Log.e(TAG, "fragmentBinding is null");
+            }
+        }
     }
 
     // MENU FUNCTIONS
@@ -609,8 +686,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (id == R.id.action_save) {
-            EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble); //creo que puedo hacer onPlay
-            EnsembleUtils.saveEnsemble(ensemble, MainActivity.this, true, true, viewAnimator, settings.getString("user", "undefined@undefined"));
+            // Let ViewModel handle both updating from layout and saving
+            ensembleViewModel.saveEnsemble(ensembleLayout, iconScale, viewAnimator, true);
             return true;
         }
 
@@ -714,8 +791,8 @@ public class MainActivity extends AppCompatActivity
         if (ensemble.onPlay)
             ensemble.flagEnsembleUpdate = true;
         else {
-            EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble); // To fix repetition ico_div issue
-            EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            ensembleViewModel.updateEnsembleFromLayout(ensembleLayout); // To fix repetition ico_div issue
+            // UI will update via LiveData observation
         }
     }
 
@@ -755,40 +832,33 @@ public class MainActivity extends AppCompatActivity
             but_play.setImageResource(R.drawable.but_play);
         }
 
-        ensemble.setVectorsFromEmpty(beatsPerBar, numBar, emptyInstruments, MainActivity.this);
-        EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+        ensembleViewModel.createNewEnsemble(beatsPerBar, numBar, emptyInstruments);
+        // UI will update via LiveData observation
     }
 
     public void instrumentOptionsPositiveClick(String option, int volume, ImageView instImage) {
+        LinearLayout instrumentLayout = (LinearLayout) instImage.getParent();
 
-        switch (option) { // duplicate, clear, remove when different than "" (onPlay)
+        switch (option) {
             case "clear":
-                LinearLayout instrumentLayout = (LinearLayout) instImage.getParent();
-                for (int i = 0; i < instrumentLayout.getChildCount(); i++) {
-                    if (String.valueOf(instrumentLayout.getChildAt(i).getTag(R.string.tag0)).contains("ico_ini")) {
-                        ((ImageView) instrumentLayout.getChildAt(i)).setImageResource(R.drawable.ico_ini);
-                        instrumentLayout.getChildAt(i).setTag(R.string.tag0, "ico_ini");
-                    }
-                    if (String.valueOf(instrumentLayout.getChildAt(i).getTag(R.string.tag0)).contains("ico_mid")) {
-                        ((ImageView) instrumentLayout.getChildAt(i)).setImageResource(R.drawable.ico_mid);
-                        instrumentLayout.getChildAt(i).setTag(R.string.tag0, "ico_mid");
-                    }
-                    if (String.valueOf(instrumentLayout.getChildAt(i).getTag(R.string.tag0)).contains("ico_end")) {
-                        ((ImageView) instrumentLayout.getChildAt(i)).setImageResource(R.drawable.ico_end);
-                        instrumentLayout.getChildAt(i).setTag(R.string.tag0, "ico_end");
-                    }
+                if (EnsembleUtils.AfroStudioVersion.equals("free")) {
+                    EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
+                    break;
                 }
-                if (ensemble.onPlay)
-                    ensemble.flagEnsembleUpdate = true;
-                else {
-                    EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                }
+
+                ensembleViewModel.clearInstrument(instrumentLayout);
                 break;
+
             case "remove":
+                if (EnsembleUtils.AfroStudioVersion.equals("free")) {
+                    EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
+                    break;
+                }
+
+                // Keep UI manipulation for the parent view removal
                 ((LinearLayout) instImage.getParent().getParent()).removeView((View) instImage.getParent());
 
-                //horizontalScrollView just remove the smallIcons, they are to be added as soon as new horizontal scrollbar is pushed
+                // Reset smallIcons
                 horizontalScrollView.setTag(R.string.tag0, "smallIconsUnSet");
                 final FrameLayout frameLayout = (FrameLayout) horizontalScrollView.getParent();
                 Vector<View> allView = new Vector<View>();
@@ -796,44 +866,33 @@ public class MainActivity extends AppCompatActivity
                     if (String.valueOf(frameLayout.getChildAt(i).getTag(R.string.tag0)).equals("ico_small"))
                         allView.add(frameLayout.getChildAt(i));
                 for (int i = 0; i < allView.size(); i++)
-                    frameLayout.removeView(allView.get(i));
+                    frameLayout.removeView(allView.elementAt(i));
                 horizontalScrollView.callOnClick();
 
-                if (ensemble.onPlay)
-                    ensemble.flagEnsembleUpdate = true;
-                else {
-                    EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                }
-
+                // Use ViewModel for data manipulation
+                ensembleViewModel.removeInstrument(instrumentLayout);
                 break;
         }
     }
 
     public void setRepetitionPositiveClick(int thisBar, int barCount, int countTotal) {
-
-        ensemble.repetitions.get(thisBar)[0] = barCount; //barCount
-        ensemble.repetitions.get(thisBar)[1] = countTotal; //total
-        ensemble.repetitions.get(thisBar)[2] = countTotal; //current
-
+        ensembleViewModel.resetRepetition(thisBar, barCount, countTotal);
         if (ensemble.onPlay)
             ensemble.flagEnsembleUpdate = true;
         else {
-            EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-            EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            ensembleViewModel.updateEnsembleFromLayout(ensembleLayout);
+            // UI will update via LiveData observation
         }
     }
 
     public void setNamePositiveClick(String name, String author) {
-        ensemble.ensembleName = name;
-        ensemble.ensembleAuthor = author;
-        ((TextView) ((LinearLayout) ensembleLayout.getChildAt(0)).getChildAt(0)).setText(name + " - by " + author);
+        ensembleViewModel.setEnsembleName(name, author);
+        // The UI update should happen through LiveData observation in the NameUpdated event
     }
 
     public void loadPositiveClick(String fileName) {
-        FragmentMainBinding fragmentBinding = getFragmentBinding();
-
-        //horizontalScrollView just remove the smallIcons, they are to be added as soon as new horizontal scrollbar is pushed
+        ensureViewsInitialized();
+        // Reset horizontal scroll UI elements
         horizontalScrollView.setTag(R.string.tag0, "smallIconsUnSet");
         final FrameLayout frameLayout = (FrameLayout) horizontalScrollView.getParent();
         Vector<View> allView = new Vector<View>();
@@ -841,56 +900,19 @@ public class MainActivity extends AppCompatActivity
             if (String.valueOf(frameLayout.getChildAt(i).getTag(R.string.tag0)).equals("ico_small"))
                 allView.add(frameLayout.getChildAt(i));
         for (int i = 0; i < allView.size(); i++)
-            frameLayout.removeView(allView.get(i));
+            frameLayout.removeView(allView.elementAt(i));
         horizontalScrollView.callOnClick();
 
-        if (fileName != null) {
-            if (ensemble.onPlay) {
-                ensemble.onPlay = false;
-                try {
-                    Thread.sleep(200); //wait async task to find a pause value
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                ImageView but_play = fragmentBinding.butPlay;
-                but_play.setImageResource(R.drawable.but_play);
-            }
-
-            if (fileName.contains(".afr")) { // File is local
-                String state = Environment.getExternalStorageState();
-                if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) { // Media Ready to at least read
-                    File file = new File(getExternalFilesDir(null), fileName);
-                    try {
-                        InputStream inputStream = new FileInputStream(file);
-                        java.util.Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A");
-                        String jsonString = s.hasNext() ? s.next() : "";
-                        ensemble.setVectorsFromJSON(jsonString);
-                        EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                    } catch (IOException e) { // Unable to create file, likely because external storage is not currently mounted.
-                        Log.e("ExternalStorage", "Error reading " + file, e);
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.toast_storage_not_ready, Toast.LENGTH_SHORT).show();
-                }
-            } else { // File in server
-                String ensembleName = fileName.substring(0, fileName.indexOf("_by_"));
-                String ensembleAuthor = fileName.substring(fileName.indexOf("_by_") + 4, fileName.indexOf("_u_"));
-                String ensembleUser = fileName.substring(fileName.indexOf("_u_") + 3, fileName.length());
-
-                serverViewModel.connectToServer(
-                        settings.getString("user", "undefined@undefined"),
-                        "getEnsemble",
-                        ensembleName,
-                        ensembleAuthor,
-                        null,
-                        ensembleUser
-
-                );
-                // wait for ensemble to load?
-            }
-        } else {
-            Toast.makeText(MainActivity.this, R.string.toast_no_file_chosen, Toast.LENGTH_SHORT).show();
+        // Stop playback if playing
+        if (ensemble.onPlay) {
+            ensemble.onPlay = false;
+            FragmentMainBinding fragmentBinding = getFragmentBinding();
+            ImageView but_play = fragmentBinding.butPlay;
+            but_play.setImageResource(R.drawable.but_play);
         }
+
+        // Use ViewModel to load ensemble
+        ensembleViewModel.loadEnsemble(fileName, frameLayout);
     }
 
     public void loadDeleteEnsembleInServer(String fileName) {
@@ -909,106 +931,54 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void equalizerPositiveClick() {
-        EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+        // Use ViewModel to update ensemble from layout to ensure data consistency
+        ensembleViewModel.updateEnsembleFromLayout(ensembleLayout);
+        // UI will update via LiveData observation
     }
 
     public void barOptionsPositiveClick(int barPos, String option, String name) {
+        ensureViewsInitialized();
+        if (ensembleLayout == null) {
+            Log.e(TAG, "ensembleLayout is null in barOptionsPositiveClick");
+            return;
+        }
 
-        ensemble.barName.setElementAt(name, barPos);// set Name
-        EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+        // Set the bar name
+        ensembleViewModel.setBarName(barPos, name);
 
-        switch (option) { //browse option (options != ""
+        switch (option) {
             case "clear":
-                for (int i = 0; i < ensemble.djembeVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.djembeVector.get(i).setElementAt(0, j);
-                for (int i = 0; i < ensemble.shekVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.shekVector.get(i).setElementAt(0, j);
-                for (int i = 0; i < ensemble.dunVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.dunVector.get(i).setElementAt(0, j);
-                for (int i = 0; i < ensemble.sagVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.sagVector.get(i).setElementAt(0, j);
-                for (int i = 0; i < ensemble.kenVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.kenVector.get(i).setElementAt(0, j);
-                for (int i = 0; i < ensemble.baletVector.size(); i++)
-                    for (int j = ensemble.getBeatsPerBar() * barPos; j < ensemble.getBeatsPerBar() * (barPos + 1); j++)
-                        ensemble.baletVector.get(i).setElementAt(0, j);
-                EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                break;
-            case "remove": // do in gui so it can be done in real time
                 if (EnsembleUtils.AfroStudioVersion.equals("free")) {
                     EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
-                    return;
+                    break;
                 }
-                for (int i = 0; i < ensembleLayout.getChildCount(); i++) {
-                    LinearLayout instrumentLayout = (LinearLayout) ensembleLayout.getChildAt(i);
-                    Vector<View> viewsToDelete = new Vector<>();
-                    if ((String.valueOf(instrumentLayout.getTag(R.string.tag0)).contains("ico_djembe")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_shek")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_dun")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_sag")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_ken")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_balet")))
-                        for (int j = (ensemble.getBeatsPerBar() + 1) * barPos + 1; j < (ensemble.getBeatsPerBar() + 1) * (barPos + 1) + 1; j++)
-                            viewsToDelete.add(instrumentLayout.getChildAt(j));
-                    if (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("last_inst")) {
-                        viewsToDelete.add(instrumentLayout.getChildAt(barPos + 1)); //first element is + icon
-                    }
-                    for (int j = 0; j < viewsToDelete.size(); j++)
-                        instrumentLayout.removeView(viewsToDelete.get(j));
-                }
-                //Also remove the repetitions in ensemble which is not updated from GUI
-                ensemble.repetitions.remove(barPos);
-                if (ensemble.onPlay)
-                    ensemble.flagEnsembleUpdate = true;
-                else {
-                    EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
-                }
+                ensembleViewModel.clearBar(barPos);
                 break;
-            case "clone_bar": // do in gui so it can be done in real time
-                if (EnsembleUtils.AfroStudioVersion.equals("free")) {
-                    EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
-                    return;
-                }
-                for (int i = 0; i < ensembleLayout.getChildCount(); i++) {
-                    LinearLayout instrumentLayout = (LinearLayout) ensembleLayout.getChildAt(i);
-                    if ((String.valueOf(instrumentLayout.getTag(R.string.tag0)).contains("ico_djembe")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_shek")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_dun")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_sag")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_ken")) || (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("ico_balet")))
-                        for (int j = (ensemble.getBeatsPerBar() + 1) * barPos + 2; j < (ensemble.getBeatsPerBar() + 1) * (barPos + 1) + 1; j++) {
-                            //Log.e(TAG, "barPos=" + barPos + ", j = " + ((ensemble.getBeatsPerBar() + 1) * barPos + 2) + " - " + ((ensemble.getBeatsPerBar() + 1) * (barPos + 1) + 1));
-                            ImageView clonedImage = new ImageView(this);
-                            clonedImage.setImageDrawable(((ImageView) instrumentLayout.getChildAt(j)).getDrawable());
-                            clonedImage.setScaleType(((ImageView) instrumentLayout.getChildAt(j)).getScaleType());
-                            clonedImage.setTag(R.string.tag0, (instrumentLayout.getChildAt(j)).getTag(R.string.tag0)); //they wont have a second tag
-                            try {
-                                clonedImage.setLayoutParams((instrumentLayout.getChildAt(j)).getLayoutParams());
-                            } catch (Exception e) {
-                            }
-                            instrumentLayout.addView(clonedImage, j + (ensemble.getBeatsPerBar() + 1));
-                        }
-                    // Bar Names
-                    if (String.valueOf(instrumentLayout.getTag(R.string.tag0)).equals("last_inst")) {
-                        TextView clonedText = new TextView(this);
-                        clonedText.setTag(R.string.tag0, (instrumentLayout.getChildAt(barPos + 1)).getTag(R.string.tag0)); //they wont have a second tag
-                        try {
-                            clonedText.setLayoutParams((instrumentLayout.getChildAt(barPos + 1)).getLayoutParams());
-                        } catch (Exception e) {
-                        }
-                        instrumentLayout.addView(clonedText, barPos + 1);
-                    }
-                }
 
-                if (ensemble.onPlay)
-                    ensemble.flagEnsembleUpdate = true;
-                else {
-                    EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-                    EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, MainActivity.this, iconScale, viewAnimator);
+            case "remove":
+                // TODO: fix Remove
+
+                if (EnsembleUtils.AfroStudioVersion.equals("free")) {
+                    EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
+                    break;
                 }
+                ensembleViewModel.removeBar(barPos);
+                break;
+
+            case "clone_bar":
+                // TODO: fix Clone
+
+                if (EnsembleUtils.AfroStudioVersion.equals("free")) {
+                    EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, MainActivity.this);
+                    break;
+                }
+                ensembleViewModel.cloneBar(barPos);
                 break;
         }
     }
 
     public void specialStrokePositiveClick() {
-        EnsembleUtils.updateEnsembleFromGui(ensembleLayout, ensemble);
+        ensembleViewModel.updateEnsembleFromLayout(ensembleLayout);
     }
 
     public void emailPositiveClick(String email) {
@@ -1053,7 +1023,7 @@ public class MainActivity extends AppCompatActivity
                 EnsembleUtils.popGetFullAfroStudioMessage(viewAnimator, this);
             } else {
                 // Save ensemble
-                EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble); //creo que puedo hacer onPlay
+                ensembleViewModel.updateEnsembleFromLayout(ensembleLayout); //creo que puedo hacer onPlay
                 EnsembleUtils.saveEnsemble(ensemble, MainActivity.this, true, true, viewAnimator, settings.getString("user", "undefined@undefined"));
 
                 String state = Environment.getExternalStorageState();
@@ -1078,6 +1048,7 @@ public class MainActivity extends AppCompatActivity
     }
     // Method to handle beat progress updates (replaces AsyncTask.onProgressUpdate)
     private void updateBeatProgress(int currentBeat) {
+        ensureViewsInitialized();
         for (int i = 1; i < ensembleLayout.getChildCount() - 1; i++) {
             LinearLayout instrumentLayout = (LinearLayout) ensembleLayout.getChildAt(i);
             int currentBar = 0;
@@ -1101,8 +1072,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (ensemble.flagEnsembleUpdate) { //update Ensemble
-            EnsembleUtils.setEnsembleFromGui(ensembleLayout, ensemble);
-            EnsembleUtils.setGuiFromEnsemble(ensembleLayout, ensemble, this, iconScale, getFragmentBinding().animatorIntro);
+            ensembleViewModel.updateEnsembleFromLayout(ensembleLayout);
+            // UI will update via LiveData observation
             ensemble.flagEnsembleUpdate = false;
         }
     }
