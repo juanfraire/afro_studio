@@ -25,11 +25,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and Run Unit Tests
-        run: ./gradlew clean testDebugUnitTest --info
+        run: ./gradlew clean testDebugUnitTest --tests "*"
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: test-results
           path: app/build/reports/tests/testDebugUnitTest
