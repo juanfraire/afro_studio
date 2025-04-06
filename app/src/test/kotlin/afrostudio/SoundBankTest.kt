@@ -1,5 +1,5 @@
 package com.yaray.afrostudio
-
+// uses JUnit4 due to robolectric compatibility issues with JUnit5
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.*
