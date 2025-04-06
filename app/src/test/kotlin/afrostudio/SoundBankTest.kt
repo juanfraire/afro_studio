@@ -1,20 +1,21 @@
 package com.yaray.afrostudio
-
+// uses JUnit 5
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
-@RunWith(RobolectricTestRunner::class)
+import tech.apter.junit.jupiter.robolectric.RobolectricExtension // using experimental https://github.com/apter-tech/junit5-robolectric-extension
+
+@ExtendWith(RobolectricExtension::class)
 class SoundBankTest {
 
     private lateinit var soundBank: SoundBank
     private lateinit var context: Context
 
-    @Before
+    @BeforeEach
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         soundBank = SoundBank()
@@ -30,8 +31,8 @@ class SoundBankTest {
         soundBank.addSound(family, soundType, variant, testData)
 
         val retrievedSound = soundBank.getSound(family, soundType, variant)
-        assertNotNull("Retrieved sound should not be null", retrievedSound)
-        assertArrayEquals("Retrieved sound should match added sound", testData, retrievedSound)
+        assertNotNull(retrievedSound, "Retrieved sound should not be null")
+        assertArrayEquals(testData, retrievedSound, "Retrieved sound should match added sound")
     }
 
     @Test
@@ -43,15 +44,15 @@ class SoundBankTest {
         soundBank.addSound(family, soundType, 0, testData)
 
         val retrievedSound = soundBank.getSound(family, soundType)
-        assertNotNull("Retrieved sound should not be null", retrievedSound)
-        assertArrayEquals("Retrieved sound should match added sound", testData, retrievedSound)
+        assertNotNull(retrievedSound, "Retrieved sound should not be null")
+        assertArrayEquals(testData, retrievedSound, "Retrieved sound should match added sound")
     }
 
     @Test
     fun testGetNonExistentSound() {
         val retrievedSound = soundBank.getSound("non_existent", "non_existent", 0)
-        assertNotNull("Retrieved sound should not be null even if not found", retrievedSound)
-        assertEquals("Non-existent sound should return empty array", 0, retrievedSound.size)
+        assertNotNull(retrievedSound, "Retrieved sound should not be null even if not found")
+        assertEquals(0, retrievedSound.size, "Non-existent sound should return empty array")
     }
 
     @Test
@@ -62,10 +63,10 @@ class SoundBankTest {
         val dunBass = soundBank.getSound("dun", "bass_bell", 0)
         val silence = soundBank.getSound("special", "silence", 0)
 
-        assertTrue("Djembe bass sound should be loaded", djembeBass.isNotEmpty())
-        assertTrue("Dun bass bell sound should be loaded", dunBass.isNotEmpty())
-        assertTrue("Silence sound should be created", silence.isNotEmpty())
-        assertEquals("Silence sound should be 176400 bytes", 176400, silence.size)
+        assertTrue(djembeBass.isNotEmpty(), "Djembe bass sound should be loaded")
+        assertTrue(dunBass.isNotEmpty(), "Dun bass bell sound should be loaded")
+        assertTrue(silence.isNotEmpty(), "Silence sound should be created")
+        assertEquals(176400, silence.size, "Silence sound should be 176400 bytes")
     }
 
     @Test
@@ -77,13 +78,13 @@ class SoundBankTest {
             val toneDjembe = soundBank.getSound("djembe", "tone", variant)
             val slapDjembe = soundBank.getSound("djembe", "slap", variant)
 
-            assertNotNull("Djembe bass variant $variant should not be null", bassDjembe)
-            assertNotNull("Djembe tone variant $variant should not be null", toneDjembe)
-            assertNotNull("Djembe slap variant $variant should not be null", slapDjembe)
+            assertNotNull(bassDjembe, "Djembe bass variant $variant should not be null")
+            assertNotNull(toneDjembe, "Djembe tone variant $variant should not be null")
+            assertNotNull(slapDjembe, "Djembe slap variant $variant should not be null")
 
-            assertTrue("Djembe bass variant $variant should have data", bassDjembe.isNotEmpty())
-            assertTrue("Djembe tone variant $variant should have data", toneDjembe.isNotEmpty())
-            assertTrue("Djembe slap variant $variant should have data", slapDjembe.isNotEmpty())
+            assertTrue(bassDjembe.isNotEmpty(), "Djembe bass variant $variant should have data")
+            assertTrue(toneDjembe.isNotEmpty(), "Djembe tone variant $variant should have data")
+            assertTrue(slapDjembe.isNotEmpty(), "Djembe slap variant $variant should have data")
         }
     }
 
@@ -96,13 +97,13 @@ class SoundBankTest {
             val toneFlam = soundBank.getSound("djembe", "tone_flam", variant)
             val slapFlam = soundBank.getSound("djembe", "slap_flam", variant)
 
-            assertNotNull("Djembe bass_flam variant $variant should not be null", bassFlam)
-            assertNotNull("Djembe tone_flam variant $variant should not be null", toneFlam)
-            assertNotNull("Djembe slap_flam variant $variant should not be null", slapFlam)
+            assertNotNull(bassFlam, "Djembe bass_flam variant $variant should not be null")
+            assertNotNull(toneFlam, "Djembe tone_flam variant $variant should not be null")
+            assertNotNull(slapFlam, "Djembe slap_flam variant $variant should not be null")
 
-            assertTrue("Djembe bass_flam variant $variant should have data", bassFlam.isNotEmpty())
-            assertTrue("Djembe tone_flam variant $variant should have data", toneFlam.isNotEmpty())
-            assertTrue("Djembe slap_flam variant $variant should have data", slapFlam.isNotEmpty())
+            assertTrue(bassFlam.isNotEmpty(), "Djembe bass_flam variant $variant should have data")
+            assertTrue(toneFlam.isNotEmpty(), "Djembe tone_flam variant $variant should have data")
+            assertTrue(slapFlam.isNotEmpty(), "Djembe slap_flam variant $variant should have data")
         }
     }
 
@@ -118,17 +119,17 @@ class SoundBankTest {
             val bell = soundBank.getSound(instrument, "bell", 0)
             val bassBellMute = soundBank.getSound(instrument, "bass_bell_mute", 0)
 
-            assertNotNull("$instrument bass should not be null", bass)
-            assertNotNull("$instrument bass_mute should not be null", bassMute)
-            assertNotNull("$instrument bass_bell should not be null", bassBell)
-            assertNotNull("$instrument bell should not be null", bell)
-            assertNotNull("$instrument bass_bell_mute should not be null", bassBellMute)
+            assertNotNull(bass, "$instrument bass should not be null")
+            assertNotNull(bassMute, "$instrument bass_mute should not be null")
+            assertNotNull(bassBell, "$instrument bass_bell should not be null")
+            assertNotNull(bell, "$instrument bell should not be null")
+            assertNotNull(bassBellMute, "$instrument bass_bell_mute should not be null")
 
-            assertTrue("$instrument bass should have data", bass.isNotEmpty())
-            assertTrue("$instrument bass_mute should have data", bassMute.isNotEmpty())
-            assertTrue("$instrument bass_bell should have data", bassBell.isNotEmpty())
-            assertTrue("$instrument bell should have data", bell.isNotEmpty())
-            assertTrue("$instrument bass_bell_mute should have data", bassBellMute.isNotEmpty())
+            assertTrue(bass.isNotEmpty(), "$instrument bass should have data")
+            assertTrue(bassMute.isNotEmpty(), "$instrument bass_mute should have data")
+            assertTrue(bassBell.isNotEmpty(), "$instrument bass_bell should have data")
+            assertTrue(bell.isNotEmpty(), "$instrument bell should have data")
+            assertTrue(bassBellMute.isNotEmpty(), "$instrument bass_bell_mute should have data")
         }
     }
 
@@ -139,8 +140,8 @@ class SoundBankTest {
         val baletSounds = arrayOf("dun", "sag", "ken", "dun_mute", "sag_mute", "ken_mute", "ring")
         for (soundType in baletSounds) {
             val sound = soundBank.getSound("balet", soundType, 0)
-            assertNotNull("Balet $soundType should not be null", sound)
-            assertTrue("Balet $soundType should have data", sound.isNotEmpty())
+            assertNotNull(sound, "Balet $soundType should not be null")
+            assertTrue(sound.isNotEmpty(), "Balet $soundType should have data")
         }
     }
 
@@ -151,14 +152,14 @@ class SoundBankTest {
         val ring = soundBank.getSound("special", "ring", 0)
         val silence = soundBank.getSound("special", "silence", 0)
 
-        assertNotNull("Special ring sound should not be null", ring)
-        assertNotNull("Special silence sound should not be null", silence)
+        assertNotNull(ring, "Special ring sound should not be null")
+        assertNotNull(silence, "Special silence sound should not be null")
 
-        assertTrue("Special ring sound should have data", ring.isNotEmpty())
-        assertEquals("Silence should be exactly 176400 bytes", 176400, silence.size)
+        assertTrue(ring.isNotEmpty(), "Special ring sound should have data")
+        assertEquals(176400, silence.size, "Silence should be exactly 176400 bytes")
 
         val allZeros = silence.all { it == 0.toByte() }
-        assertTrue("Silence should contain all zeros", allZeros)
+        assertTrue(allZeros, "Silence should contain all zeros")
     }
 
     @Test
@@ -167,8 +168,8 @@ class SoundBankTest {
 
         val shek = soundBank.getSound("shek", "standard", 0)
 
-        assertNotNull("Shekere sound should not be null", shek)
-        assertTrue("Shekere sound should have data", shek.isNotEmpty())
+        assertNotNull(shek, "Shekere sound should not be null")
+        assertTrue(shek.isNotEmpty(), "Shekere sound should have data")
     }
 
     @Test
@@ -183,9 +184,9 @@ class SoundBankTest {
         soundBank.addSound(family, soundType, 1, variant1Data)
         soundBank.addSound(family, soundType, 2, variant2Data)
 
-        assertArrayEquals("Variant 0 data should match", variant0Data, soundBank.getSound(family, soundType, 0))
-        assertArrayEquals("Variant 1 data should match", variant1Data, soundBank.getSound(family, soundType, 1))
-        assertArrayEquals("Variant 2 data should match", variant2Data, soundBank.getSound(family, soundType, 2))
+        assertArrayEquals(variant0Data, soundBank.getSound(family, soundType, 0), "Variant 0 data should match")
+        assertArrayEquals(variant1Data, soundBank.getSound(family, soundType, 1), "Variant 1 data should match")
+        assertArrayEquals(variant2Data, soundBank.getSound(family, soundType, 2), "Variant 2 data should match")
     }
 
     @Test
@@ -199,8 +200,8 @@ class SoundBankTest {
         val retrievedVariant1 = soundBank.getSound(family, soundType, 1)
         val retrievedVariant2 = soundBank.getSound(family, soundType, 2)
 
-        assertEquals("Non-existent variant should return empty array", 0, retrievedVariant1.size)
-        assertEquals("Non-existent variant should return empty array", 0, retrievedVariant2.size)
+        assertEquals(0, retrievedVariant1.size, "Non-existent variant should return empty array")
+        assertEquals(0, retrievedVariant2.size, "Non-existent variant should return empty array")
     }
 
     @Test
@@ -232,8 +233,8 @@ class SoundBankTest {
                     val expected = byteArrayOf(f.toByte(), s.toByte(), v.toByte(), (f + s + v).toByte())
                     val actual = soundBank.getSound(family, soundType, v)
 
-                    assertNotNull("Sound should not be null for $family:$soundType:$v", actual)
-                    assertArrayEquals("Sound data should match for $family:$soundType:$v", expected, actual)
+                    assertNotNull(actual, "Sound should not be null for $family:$soundType:$v")
+                    assertArrayEquals(expected, actual, "Sound data should match for $family:$soundType:$v")
                 }
             }
         }
